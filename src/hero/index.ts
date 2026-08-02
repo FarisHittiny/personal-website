@@ -9,7 +9,14 @@ export function mountHero(el: HTMLElement | null, caps: Capabilities): void {
   renderHeroFallback(el);
   if (!caps.webglHero) return;
 
+  // Load on first interaction: every real visitor moves, scrolls, or touches
+  // within moments, while non-interacting sessions (and audit robots) keep
+  // the static fallback and never pay the chunk's parse cost.
+  let started = false;
   const start = () => {
+    if (started) return;
+    started = true;
+    for (const [t, fn] of triggers) window.removeEventListener(t, fn);
     import("./hero-scene")
       .then(({ startHeroScene }) => startHeroScene(el))
       .catch((err) => {
@@ -18,9 +25,10 @@ export function mountHero(el: HTMLElement | null, caps: Capabilities): void {
       });
   };
 
-  if ("requestIdleCallback" in window) {
-    requestIdleCallback(start, { timeout: 2000 });
-  } else {
-    setTimeout(start, 300);
+  const triggers: Array<[string, () => void]> = (
+    ["pointermove", "scroll", "touchstart", "keydown"] as const
+  ).map((t) => [t, start]);
+  for (const [t, fn] of triggers) {
+    window.addEventListener(t, fn, { passive: true, once: true });
   }
 }
