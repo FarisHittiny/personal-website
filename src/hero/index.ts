@@ -12,8 +12,9 @@ export function mountHero(el: HTMLElement | null, caps: Capabilities): void {
   const start = () => {
     import("./hero-scene")
       .then(({ startHeroScene }) => startHeroScene(el))
-      .catch(() => {
-        /* fallback already rendered — nothing to do */
+      .catch((err) => {
+        // Fallback is already rendered; log so failures are never silent.
+        console.warn("hero scene unavailable:", err);
       });
   };
 
