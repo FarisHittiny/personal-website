@@ -93,6 +93,16 @@
   font-weight: 500;
 }
 
+.btn[disabled] {
+  opacity: 0.55;
+  cursor: wait;
+}
+
+.field input[disabled],
+.field textarea[disabled] {
+  opacity: 0.55;
+}
+
 .btn-solid:hover {
   background: var(--accent-hi);
   color: #141204;
