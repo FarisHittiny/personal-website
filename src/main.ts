@@ -3,6 +3,7 @@ import "./styles/base.css";
 import "./styles/layout.css";
 import "./styles/components.css";
 import "./styles/motion.css";
+import "./styles/diagram.css";
 
 import { initReveals } from "./lib/reveal";
 import { initCursor } from "./lib/cursor";
