@@ -1,0 +1,58 @@
+/* Reveals — base state is VISIBLE. Only when JS is running (html.js) and
+   motion is allowed do elements start hidden and reveal on scroll. */
+@media (prefers-reduced-motion: no-preference) {
+  html.js .reveal {
+    opacity: 0;
+    transform: translateY(14px);
+    transition: opacity var(--dur) var(--ease-out), transform var(--dur) var(--ease-out);
+    transition-delay: calc(var(--stagger-i, 0) * var(--stagger));
+  }
+
+  html.js .is-revealed .reveal,
+  html.js .reveal.is-revealed {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+/* ============ Custom cursor ============ */
+/* Overlay elements; native cursor stays functional. Fine pointers only. */
+.cursor-dot,
+.cursor-ring {
+  position: fixed;
+  top: 0;
+  left: 0;
+  z-index: 200;
+  pointer-events: none;
+  border-radius: 50%;
+  will-change: transform;
+}
+
+.cursor-dot {
+  width: 6px;
+  height: 6px;
+  background: var(--accent);
+  transform: translate(-50%, -50%);
+}
+
+.cursor-ring {
+  width: 28px;
+  height: 28px;
+  border: 1px solid var(--accent-dim);
+  transform: translate(-50%, -50%);
+  transition: width 200ms var(--ease-out), height 200ms var(--ease-out),
+    border-color 200ms var(--ease-out);
+}
+
+html.cursor-on .cursor-ring.is-active {
+  width: 16px;
+  height: 16px;
+  border-color: var(--accent);
+}
+
+@media (prefers-reduced-motion: reduce), (pointer: coarse) {
+  .cursor-dot,
+  .cursor-ring {
+    display: none;
+  }
+}

@@ -1,0 +1,362 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="Faris Hittiny — computer engineering at Texas A&M. Custom RISC-V hardware acceleration, applied AI/ML at Aramco Americas, and computer-vision research." />
+  <meta property="og:title" content="Faris Hittiny — Computer Engineering" />
+  <meta property="og:description" content="From RTL to inference: RISC-V hardware acceleration, applied AI/ML, computer-vision research." />
+  <meta property="og:type" content="website" />
+  <meta property="og:image" content="./og-image.png" />
+  <title>Faris Hittiny — Computer Engineering</title>
+  <link rel="icon" href="./favicon.svg" type="image/svg+xml" />
+  <link rel="preload" href="./fonts/fraunces-latin-wght-normal.woff2" as="font" type="font/woff2" crossorigin />
+  <link rel="preload" href="./fonts/ibm-plex-mono-latin-400-normal.woff2" as="font" type="font/woff2" crossorigin />
+  <style>
+    /* Self-hosted fonts. Declared here (not in bundled CSS) so the URLs stay
+       relative to index.html — the site is served from a subdirectory. */
+    @font-face {
+      font-family: "Fraunces";
+      src: url("./fonts/fraunces-latin-wght-normal.woff2") format("woff2-variations");
+      font-weight: 100 900;
+      font-style: normal;
+      font-display: swap;
+    }
+    @font-face {
+      font-family: "IBM Plex Mono";
+      src: url("./fonts/ibm-plex-mono-latin-400-normal.woff2") format("woff2");
+      font-weight: 400;
+      font-style: normal;
+      font-display: swap;
+    }
+    @font-face {
+      font-family: "IBM Plex Mono";
+      src: url("./fonts/ibm-plex-mono-latin-500-normal.woff2") format("woff2");
+      font-weight: 500;
+      font-style: normal;
+      font-display: swap;
+    }
+  </style>
+  <script type="module" src="./src/main.ts"></script>
+</head>
+<body>
+  <a class="skip-link" href="#about">Skip to content</a>
+
+  <header class="site-header">
+    <nav class="site-nav container" aria-label="Primary">
+      <a class="brand mono" href="#top">FH<span class="brand-accent">·</span>2027</a>
+      <ul class="nav-links">
+        <li><a href="#about">About</a></li>
+        <li><a href="#experience">Experience</a></li>
+        <li><a href="#work">Work</a></li>
+        <li><a href="#leadership">Leadership</a></li>
+        <li><a href="#interests">Interests</a></li>
+        <li><a href="#contact">Contact</a></li>
+      </ul>
+    </nav>
+  </header>
+
+  <main id="top">
+    <!-- ============ HERO ============ -->
+    <section class="hero" id="hero" aria-label="Introduction">
+      <div class="hero-canvas" id="hero-canvas" aria-hidden="true"></div>
+      <div class="container hero-inner">
+        <p class="eyebrow mono reveal">FH-2027 · PRELIMINARY DATASHEET · REV 2.0</p>
+        <h1 class="hero-name reveal">Faris Hittiny</h1>
+        <p class="hero-tagline reveal">
+          Building computer systems from <span class="nowrap">register-transfer level</span>
+          to production AI.
+        </p>
+        <ul class="hero-features mono reveal" aria-label="Highlights">
+          <li>AI/ML ENGINEERING INTERN — ARAMCO AMERICAS</li>
+          <li>CUSTOM RISC-V ACCELERATOR — 15.1&times; FEWER CYCLES <span class="dim">(SIM)</span></li>
+          <li>COMPUTER ENGINEERING '27 — TEXAS A&amp;M UNIVERSITY</li>
+        </ul>
+        <div class="hero-cta reveal">
+          <a class="btn btn-solid" href="#work">View work</a>
+          <a class="btn btn-ghost" href="#contact">Contact</a>
+          <a class="btn btn-bare mono" href="./resume/Resume.pdf">RESUME.PDF ↗</a>
+        </div>
+      </div>
+      <p class="hero-scroll mono" aria-hidden="true">SCROLL ▾</p>
+    </section>
+
+    <!-- ============ ABOUT ============ -->
+    <section class="section" id="about" aria-labelledby="about-title">
+      <div class="container">
+        <header class="section-head reveal">
+          <span class="reg mono">0x000 · IDENT</span>
+          <h2 id="about-title">About</h2>
+        </header>
+        <div class="about-grid">
+          <div class="about-text reveal">
+            <p class="lede">
+              I'm a computer engineering junior at Texas A&amp;M University, graduating May 2027.
+              I work at the boundary where hardware meets software — the layer where a design
+              decision shows up as real cycles, real watts, real latency.
+            </p>
+            <p>
+              That range is deliberate. I've written Verilog for a custom accelerator and
+              benchmarked it cycle-by-cycle in simulation; I've also shipped AI features inside
+              enterprise software where the constraint isn't the model, it's the system around
+              it. The common thread is wanting to know <em>why</em> the number is the number —
+              measuring before claiming, and being honest about what a benchmark does and
+              doesn't say.
+            </p>
+            <ul class="pin-list mono" aria-label="Quick facts">
+              <li><span class="pin-key">LOCATION</span> COLLEGE STATION, TX</li>
+              <li><span class="pin-key">DEGREE</span> B.S. COMPUTER ENGINEERING, MAY 2027</li>
+              <li><span class="pin-key">FOCUS</span> HW/SW CO-DESIGN · APPLIED AI/ML</li>
+              <li><span class="pin-key">STACK</span> C/C++ · PYTHON · VERILOG · C# · TS</li>
+            </ul>
+          </div>
+          <figure class="about-media reveal">
+            <picture>
+              <source srcset="./img/portrait-960.avif" type="image/avif" />
+              <source srcset="./img/portrait-960.webp" type="image/webp" />
+              <img src="./img/portrait-960.jpg" alt="Portrait of Faris Hittiny" width="960" height="1200" loading="lazy" decoding="async" />
+            </picture>
+            <figcaption class="mono">FIG 1.1 — SUBJECT, AMBIENT LIGHT</figcaption>
+          </figure>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ EXPERIENCE ============ -->
+    <section class="section" id="experience" aria-labelledby="experience-title">
+      <div class="container">
+        <header class="section-head reveal">
+          <span class="reg mono">0x004 · STATUS</span>
+          <h2 id="experience-title">Experience</h2>
+        </header>
+        <article class="xp-card reveal">
+          <div class="xp-head">
+            <h3>AI/ML Engineering Intern</h3>
+            <p class="xp-org">Aramco Americas</p>
+            <p class="xp-meta mono">SUMMER 2026 · HOUSTON, TX</p>
+          </div>
+          <div class="xp-body">
+            <p>
+              Two tracks, both production-facing. On the first, I own feature work on an
+              internal telecom expense platform — an ASP.NET system that ingests and reconciles
+              carrier invoices for the company's device fleet. I've shipped batch-processing
+              pipelines with real progress reporting, invoice parsing across carrier formats,
+              and Azure OpenAI-backed features, each verified against live data before release.
+            </p>
+            <p>
+              On the second, I build agents on Salesforce Agentforce — designing agent actions,
+              grounding them in org data, and testing the failure modes that separate a demo
+              from something a business unit can actually rely on.
+            </p>
+            <ul class="tag-row mono" aria-label="Technologies">
+              <li>ASP.NET / C#</li>
+              <li>AZURE OPENAI</li>
+              <li>SQL SERVER</li>
+              <li>SALESFORCE AGENTFORCE</li>
+            </ul>
+          </div>
+        </article>
+      </div>
+    </section>
+
+    <!-- ============ WORK ============ -->
+    <section class="section" id="work" aria-labelledby="work-title">
+      <div class="container">
+        <header class="section-head reveal">
+          <span class="reg mono">0x008 · RESULT</span>
+          <h2 id="work-title">Research &amp; Projects</h2>
+        </header>
+
+        <!-- Flagship: RISC-V accelerator -->
+        <article class="project project-flagship reveal" aria-labelledby="riscv-title">
+          <div class="project-head">
+            <h3 id="riscv-title">RISC-V Hardware Accelerator</h3>
+            <p class="project-sub">
+              A custom AXI-Lite popcount accelerator, integrated into a LiteX/VexRiscv SoC,
+              driven by a Zephyr driver, and benchmarked cycle-accurately under Verilator.
+            </p>
+            <ul class="tag-row mono" aria-label="Technologies">
+              <li>VERILOG</li>
+              <li>LITEX / VEXRISCV</li>
+              <li>AXI-LITE</li>
+              <li>ZEPHYR RTOS</li>
+              <li>VERILATOR</li>
+            </ul>
+          </div>
+
+          <div class="stat-row" role="group" aria-label="Key results">
+            <div class="stat">
+              <span class="stat-num">15.1&times;</span>
+              <span class="stat-label mono">FEWER CYCLES VS SW BASELINE, 4 KB</span>
+            </div>
+            <div class="stat">
+              <span class="stat-num">~1 B/cyc</span>
+              <span class="stat-label mono">CORE THROUGHPUT AT DESIGN RATE</span>
+            </div>
+            <div class="stat">
+              <span class="stat-num">0xA0000000</span>
+              <span class="stat-label mono">MEMORY-MAPPED, 8 KB WINDOW</span>
+            </div>
+          </div>
+
+          <!-- Interactive data-path diagram mounts here -->
+          <div id="datapath" class="datapath reveal"></div>
+
+          <p class="project-note mono">
+            MEASURED IN CYCLE-ACCURATE LITEX/VERILATOR RTL SIMULATION — NOT SILICON.
+            BASELINE IS THE SHIPPED BYTE-WISE SW LOOP, NOT AN OPTIMIZED SWAR KERNEL.
+          </p>
+          <a class="project-link" href="https://github.com/FarisHittiny/riscv-accel" rel="noopener">
+            github.com/FarisHittiny/riscv-accel →
+          </a>
+        </article>
+
+        <!-- Research: cattle eartag detection -->
+        <article class="project reveal" aria-labelledby="eartag-title">
+          <div class="project-cols">
+            <div>
+              <h3 id="eartag-title">Cattle Eartag Detection Research</h3>
+              <p class="project-sub">
+                Computer-vision research for livestock monitoring: detecting and reading cattle
+                eartags in field imagery as groundwork for earlier disease detection. Built
+                detection pipelines with YOLOv8 and GroundedSAM, processed and labeled
+                large-scale image datasets, and automated preprocessing that had been manual.
+                Presented at the 2025 Undergraduate Research Expo.
+              </p>
+              <ul class="tag-row mono" aria-label="Technologies">
+                <li>YOLOV8</li>
+                <li>GROUNDEDSAM</li>
+                <li>PYTORCH</li>
+                <li>OPENCV</li>
+              </ul>
+            </div>
+            <figure class="project-media">
+              <picture>
+                <source srcset="./img/eartag-960.avif" type="image/avif" />
+                <source srcset="./img/eartag-960.webp" type="image/webp" />
+                <img src="./img/eartag-960.jpg" alt="Presenting eartag-detection research at the 2025 Undergraduate Research Expo" width="960" height="720" loading="lazy" decoding="async" />
+              </picture>
+              <figcaption class="mono">FIG 3.1 — 2025 UNDERGRADUATE RESEARCH EXPO</figcaption>
+            </figure>
+          </div>
+        </article>
+      </div>
+    </section>
+
+    <!-- ============ LEADERSHIP ============ -->
+    <section class="section" id="leadership" aria-labelledby="leadership-title">
+      <div class="container">
+        <header class="section-head reveal">
+          <span class="reg mono">0x00C · CTRL</span>
+          <h2 id="leadership-title">Leadership</h2>
+        </header>
+        <article class="xp-card reveal">
+          <div class="xp-head">
+            <h3>Membership Chair</h3>
+            <p class="xp-org">Arab Student Association, Texas A&amp;M</p>
+            <p class="xp-meta mono">2025 — PRESENT</p>
+          </div>
+          <div class="xp-body">
+            <p>
+              I run membership for ASA — recruitment, onboarding, and making sure the people
+              who show up once come back. It's operations work with a human core: tabling
+              season, first-event welcomes, and keeping a growing roster feeling like a
+              community rather than a mailing list.
+            </p>
+          </div>
+        </article>
+      </div>
+    </section>
+
+    <!-- ============ INTERESTS ============ -->
+    <section class="section" id="interests" aria-labelledby="interests-title">
+      <div class="container">
+        <header class="section-head reveal">
+          <span class="reg mono">0x010 · CONFIG</span>
+          <h2 id="interests-title">Off the Clock</h2>
+        </header>
+        <p class="interests-lede reveal">
+          Recommended operating conditions. Exceeding these ratings is common and encouraged.
+        </p>
+        <div class="op-table-wrap reveal">
+          <table class="op-table">
+            <caption class="visually-hidden">Interests, presented as a datasheet operating-conditions table</caption>
+            <thead class="mono">
+              <tr><th scope="col">PARAMETER</th><th scope="col">MODE</th><th scope="col">NOTES</th></tr>
+            </thead>
+            <tbody>
+              <tr>
+                <th scope="row">Pickleball</th>
+                <td class="mono">PLAYER</td>
+                <td>Always up for a game. Dinks are a legitimate strategy and I will not be argued out of this.</td>
+              </tr>
+              <tr>
+                <th scope="row">Soccer</th>
+                <td class="mono">PLAYER / ORGANIZER</td>
+                <td>I play, and I'm usually the one wrangling the group chat into an actual match.</td>
+              </tr>
+              <tr>
+                <th scope="row">Live sports</th>
+                <td class="mono">SPECTATOR</td>
+                <td>If there's a game on somewhere nearby, odds are decent I'm in the stands.</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ CONTACT ============ -->
+    <section class="section section-last" id="contact" aria-labelledby="contact-title">
+      <div class="container">
+        <header class="section-head reveal">
+          <span class="reg mono">0x014 · IO</span>
+          <h2 id="contact-title">Contact</h2>
+        </header>
+        <div class="contact-grid">
+          <div class="contact-text reveal">
+            <p class="lede">
+              Internships, research, projects, or a pickup game — my inbox is open.
+            </p>
+            <ul class="pin-list mono" aria-label="Contact channels">
+              <li><span class="pin-key">EMAIL</span> <a href="mailto:farishittiny@tamu.edu">FARISHITTINY@TAMU.EDU</a></li>
+              <li><span class="pin-key">GITHUB</span> <a href="https://github.com/FarisHittiny" rel="noopener">GITHUB.COM/FARISHITTINY</a></li>
+              <li><span class="pin-key">LINKEDIN</span> <a href="https://www.linkedin.com/in/farishittiny/" rel="noopener">LINKEDIN.COM/IN/FARISHITTINY</a></li>
+              <li><span class="pin-key">RESUME</span> <a href="./resume/Resume.pdf">RESUME.PDF</a></li>
+            </ul>
+          </div>
+          <form class="contact-form reveal" id="contact-form" method="POST" novalidate>
+            <div class="field">
+              <label class="mono" for="cf-name">NAME</label>
+              <input id="cf-name" name="name" type="text" autocomplete="name" required />
+            </div>
+            <div class="field">
+              <label class="mono" for="cf-email">EMAIL</label>
+              <input id="cf-email" name="email" type="email" autocomplete="email" required />
+            </div>
+            <div class="field">
+              <label class="mono" for="cf-msg">MESSAGE</label>
+              <textarea id="cf-msg" name="message" rows="5" required></textarea>
+            </div>
+            <!-- honeypot: hidden from humans, bots fill it -->
+            <div class="hp" aria-hidden="true">
+              <label for="cf-company">Company</label>
+              <input id="cf-company" name="_gotcha" type="text" tabindex="-1" autocomplete="off" />
+            </div>
+            <p class="form-status mono" id="form-status" role="status"></p>
+            <button class="btn btn-solid" type="submit">Send message</button>
+          </form>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <div class="container footer-inner mono">
+      <span>REV 2.0 · 2026-08</span>
+      <span>BUILT WITH VITE + THREE.JS · NO TRACKERS</span>
+      <span>© <span id="year">2026</span> FARIS HITTINY</span>
+    </div>
+  </footer>
+</body>
+</html>

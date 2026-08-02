@@ -1,0 +1,63 @@
+/* Design tokens — "chip datasheet with excellent taste"
+   Single source of truth: every color/size/ease in the site resolves here. */
+
+:root {
+  /* Ink (surfaces) */
+  --ink-0: #0a0a0c; /* page base — near-black, hint of blue-graphite */
+  --ink-1: #121216; /* raised surface / cards */
+  --ink-2: #1b1b21; /* hover surface, table stripes */
+
+  /* Lines */
+  --line-0: #26262e; /* hairline rules, traces at rest */
+  --line-1: #3a3a44; /* emphasized rules, borders */
+
+  /* Text */
+  --text-0: #edede8; /* primary — warm off-white, ~14.8:1 on ink-0 */
+  --text-1: #a8a8a4; /* secondary, ~7:1 */
+  --text-2: #8b8b88; /* metadata/pin labels — mono or large only */
+
+  /* Accent — aged gold. The only metal on the board; spend it sparingly. */
+  --accent: #c9a227;
+  --accent-hi: #e8c558;
+  --accent-dim: #7a6420;
+
+  /* Status — diagram only */
+  --status-ok: #4fa870;
+  --status-err: #c4554d;
+
+  /* Type */
+  --font-display: "Fraunces", Georgia, "Times New Roman", serif;
+  --font-mono: "IBM Plex Mono", ui-monospace, "Cascadia Mono", monospace;
+  --font-body: ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+
+  --text-xs: 0.75rem;
+  --text-sm: 0.875rem;
+  --text-md: 1rem;
+  --text-lg: 1.1875rem;
+  --text-xl: clamp(1.6rem, 3vw, 2rem);
+  --text-2xl: clamp(2.75rem, 7vw, 4.75rem);
+
+  /* Spacing (8px rhythm) */
+  --sp-1: 0.25rem;
+  --sp-2: 0.5rem;
+  --sp-3: 0.75rem;
+  --sp-4: 1rem;
+  --sp-6: 1.5rem;
+  --sp-8: 2rem;
+  --sp-12: 3rem;
+  --sp-16: 4rem;
+  --sp-24: 6rem;
+  --sp-32: 8rem;
+
+  /* Shape — datasheets have sharp corners */
+  --r-0: 2px;
+
+  /* Motion */
+  --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+  --dur: 600ms;
+  --stagger: 60ms;
+
+  /* Layout */
+  --container: 68rem;
+  --gutter: clamp(1.25rem, 4vw, 2.5rem);
+}
