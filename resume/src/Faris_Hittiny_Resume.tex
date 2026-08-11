@@ -1,0 +1,183 @@
+%-------------------------------------------------------------------------------
+% Faris Hittiny — Resume
+% ATS-friendly single-column LaTeX resume (based on Jake Gutierrez's template)
+% Compile with: pdflatex Faris_Hittiny_Resume.tex
+%-------------------------------------------------------------------------------
+
+\documentclass[letterpaper,11pt]{article}
+
+\usepackage{latexsym}
+\usepackage[empty]{fullpage}
+\usepackage{titlesec}
+\usepackage{marvosym}
+\usepackage[usenames,dvipsnames]{color}
+\usepackage{verbatim}
+\usepackage{enumitem}
+\setlist[itemize]{itemsep=0pt, topsep=1pt}
+\usepackage[hidelinks]{hyperref}
+\usepackage{fancyhdr}
+\usepackage[english]{babel}
+\usepackage{tabularx}
+\input{glyphtounicode}
+
+
+\pagestyle{fancy}
+\fancyhf{}
+\fancyfoot{}
+\renewcommand{\headrulewidth}{0pt}
+\renewcommand{\footrulewidth}{0pt}
+
+% Adjust margins
+\addtolength{\oddsidemargin}{-0.65in}
+\addtolength{\evensidemargin}{-0.65in}
+\addtolength{\textwidth}{1.3in}
+\addtolength{\topmargin}{-.5in}
+\addtolength{\textheight}{1.0in}
+
+\urlstyle{same}
+
+\raggedbottom
+\raggedright
+\setlength{\tabcolsep}{0in}
+
+% Section formatting
+\titleformat{\section}{
+  \vspace{-6pt}\scshape\raggedright\large
+}{}{0em}{}[\color{black}\titlerule \vspace{-6pt}]
+
+% Ensure PDF is machine readable / ATS parsable
+\pdfgentounicode=1
+
+%-------------------------
+% Custom commands
+\newcommand{\resumeItem}[1]{
+  \item\small{
+    {#1 \vspace{-2pt}}
+  }
+}
+
+\newcommand{\resumeSubheading}[4]{
+  \vspace{-2pt}\item
+    \begin{tabular*}{0.97\textwidth}[t]{l@{\extracolsep{\fill}}r}
+      \textbf{#1} & #2 \\
+      \textit{\small#3} & \textit{\small #4} \\
+    \end{tabular*}\vspace{-7pt}
+}
+
+\newcommand{\resumeProjectHeading}[2]{
+    \item
+    \begin{tabular*}{0.97\textwidth}{l@{\extracolsep{\fill}}r}
+      \small#1 & #2 \\
+    \end{tabular*}\vspace{-7pt}
+}
+
+\newcommand{\resumeSubItem}[1]{\resumeItem{#1}\vspace{-4pt}}
+
+\renewcommand\labelitemii{$\vcenter{\hbox{\tiny$\bullet$}}$}
+
+\newcommand{\resumeSubHeadingListStart}{\begin{itemize}[leftmargin=0.15in, label={}]}
+\newcommand{\resumeSubHeadingListEnd}{\end{itemize}}
+\newcommand{\resumeItemListStart}{\begin{itemize}}
+\newcommand{\resumeItemListEnd}{\end{itemize}\vspace{-6pt}}
+
+%-------------------------------------------
+\begin{document}
+
+%----------HEADING----------
+\begin{center}
+    \textbf{\Huge \scshape Faris Hittiny} \\ \vspace{1pt}
+    \small 832-330-0036 $|$ \href{mailto:faris@farishittiny.com}{faris@farishittiny.com} $|$
+    \href{https://farishittiny.com}{farishittiny.com} $|$
+    \href{https://github.com/FarisHittiny}{github.com/FarisHittiny} $|$
+    \href{https://linkedin.com/in/farishittiny}{linkedin.com/in/farishittiny}
+\end{center}
+
+%-----------EDUCATION-----------
+\section{Education}
+  \resumeSubHeadingListStart
+    \resumeSubheading
+      {Texas A\&M University}{College Station, TX}
+      {Bachelor of Science in Computer Engineering, GPA: 3.64}{Expected May 2027}
+  \resumeSubHeadingListEnd
+
+%-----------TECHNICAL SKILLS-----------
+\section{Technical Skills}
+ \begin{itemize}[leftmargin=0.15in, label={}]
+    \small{\item{
+     \textbf{Machine Learning \& AI}{: PyTorch, YOLOv8, Detectron2, OpenCV, Azure OpenAI, scikit-learn} \\
+     \textbf{Programming \& Systems}{: Python, C\#, .NET, C++, C, JavaScript, SQL, Bash, MATLAB, Git, Linux, Docker, CI/CD} \\
+     \textbf{Web \& Databases}{: Node.js, Express, REST APIs, PostgreSQL, SQL Server, Entity Framework Core, Open XML SDK} \\
+     \textbf{Cloud \& Enterprise Tools}{: AWS, Microsoft Copilot Studio, Microsoft 365 Copilot, SSMS, Visual Studio, VS Code} \\
+     \textbf{Embedded \& Acceleration}{: Verilog, FPGA Prototyping, LiteX, Renode, Verilator, Zephyr RTOS}
+    }}
+ \end{itemize}
+
+
+%-----------EXPERIENCE-----------
+\section{Experience}
+  \resumeSubHeadingListStart
+
+    \resumeSubheading
+      {Aramco Americas}{Houston, TX}
+      {AI/ML Engineering Intern, Digital \& Information Technology}{May 2026 -- Present}
+      \resumeItemListStart
+        \resumeItem{Built AI-powered invoice extraction and document understanding solutions on \textbf{Azure OpenAI}, creating anonymized datasets and validation pipelines to evaluate model output at scale.}
+        \resumeItem{Designed an AI Interview Scheduling Agent in \textbf{Microsoft Copilot Studio}, integrating Azure OpenAI with \textbf{SAP SuccessFactors} to automate candidate scheduling end to end.}
+        \resumeItem{Automated invoice processing for AT\&T, Verizon, and T-Mobile carrier billing data, replacing manual reconciliation steps in the Cellbill Manager platform.}
+        \resumeItem{Developed and enhanced enterprise billing applications using \textbf{C\#, .NET, Entity Framework Core, SQL Server}, and Open XML SDK.}
+        \resumeItem{Debugged database, API, networking, and proxy-authentication failures across enterprise environments; documented fixes and handoff procedures for the development team.}
+        \resumeItem{Awarded the \textbf{Excellence in Teamwork Award} through Aramco's Next Gen Leaders program (2026).}
+      \resumeItemListEnd
+
+    \resumeSubheading
+      {Texas A\&M University}{College Station, TX}
+      {AI/ML Undergraduate Research Assistant, Disease Management in Animal Systems}{May 2025 -- May 2026}
+      \resumeItemListStart
+        \resumeItem{Developed and benchmarked \textbf{10+} deep learning models (YOLO, Mask R-CNN, Detectron2), achieving \textbf{\textasciitilde{}95\% accuracy} in object identification.}
+        \resumeItem{Processed and labeled \textbf{10,000+} images from 4+ months of continuous video, creating scalable datasets for model training and validation.}
+        \resumeItem{Automated preprocessing pipelines that cut manual work by \textbf{60\%+} across an 11-member team, using Git and HPC scheduling (Slurm) for reproducibility.}
+      \resumeItemListEnd
+
+  \resumeSubHeadingListEnd
+
+%-----------PROJECTS-----------
+\section{Projects}
+    \resumeSubHeadingListStart
+
+      \resumeProjectHeading
+          {\textbf{Boba Shop Point-of-Sale System} $|$ \emph{Node.js, Express, PostgreSQL, OAuth} -- CSCE 331}{Fall 2025}
+          \resumeItemListStart
+            \resumeItem{Built a full-stack point-of-sale and inventory system supporting cashier, manager, and customer-facing views.}
+            \resumeItem{Designed a normalized PostgreSQL schema and REST API driving live order entry, inventory depletion, and sales reporting.}
+            \resumeItem{Added Google OAuth login, translation, and weather API integrations for accessibility; delivered across Agile sprints in a 5-member team.}
+          \resumeItemListEnd
+
+      \resumeProjectHeading
+          {\textbf{AI-Driven Demand Mapping} $|$ \emph{Python, AWS} -- Tidal Hackathon (Top 10 of 200+ teams)}{Fall 2024}
+          \resumeItemListStart
+            \resumeItem{Built a Python/AWS ML pipeline analyzing \textbf{50,000+} sales records to recommend warehouse locations for Amazon sellers.}
+            \resumeItem{Visualized geospatial and sales-trend data, improving estimated delivery efficiency by \textbf{20\%}.}
+          \resumeItemListEnd
+
+      \resumeProjectHeading
+          {\textbf{RISC-V Accelerator on Zephyr} $|$ \emph{Verilog, LiteX, Zephyr RTOS} -- \href{https://github.com/FarisHittiny}{github.com/FarisHittiny}}{}
+          \resumeItemListStart
+            \resumeItem{Designed a 6-register accelerator in Verilog with an AXI-Lite interface, integrated into a LiteX SoC.}
+            \resumeItem{Built and validated a Zephyr RTOS driver through \textbf{100+} Renode/Verilator simulations, benchmarking checksum workloads for a \textbf{3$\times$ speedup} over software-only execution.}
+          \resumeItemListEnd
+
+    \resumeSubHeadingListEnd
+
+%-----------LEADERSHIP-----------
+\section{Leadership \& Involvement}
+  \resumeSubHeadingListStart
+    \resumeSubheading
+      {Arab Student Association (ASA), Texas A\&M University}{College Station, TX}
+      {Membership Chair}{2026 -- Present}
+      \resumeItemListStart
+        \resumeItem{Lead membership recruitment, onboarding, and retention for one of the largest cultural organizations on campus.}
+        \resumeItem{Coordinate meetings and cultural events with the officer board.}
+      \resumeItemListEnd
+  \resumeSubHeadingListEnd
+
+\end{document}

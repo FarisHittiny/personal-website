@@ -17,6 +17,14 @@ await mkdir(outDir, { recursive: true });
 const SLOTS = [
   { name: "portrait", w: 960, h: 1200 },
   { name: "eartag", w: 960, h: 720 },
+  { name: "sitevisit", w: 960, h: 1200 },
+  { name: "awards", w: 960, h: 720 },
+  { name: "asa", w: 960, h: 720 },
+  { name: "roberto", w: 960, h: 720 },
+  // extract: sharp's attention crop decapitates this one — band tuned to keep
+  // faces and the full "WE ARE JORDAN" flag text (source is 1536x2304).
+  { name: "jordan", w: 960, h: 720, extract: { left: 0, top: 573, width: 1536, height: 1152 } },
+  { name: "flagday", w: 960, h: 720 },
 ];
 
 async function findSource(name) {
@@ -40,7 +48,9 @@ for (const slot of SLOTS) {
     missing++;
     continue;
   }
-  const img = sharp(src).resize(slot.w, slot.h, { fit: "cover", position: "attention" });
+  let img = sharp(src);
+  if (slot.extract) img = img.extract(slot.extract);
+  img = img.resize(slot.w, slot.h, { fit: "cover", position: "attention" });
   await img.clone().jpeg({ quality: 80, mozjpeg: true }).toFile(path.join(outDir, `${slot.name}-960.jpg`));
   await img.clone().webp({ quality: 75 }).toFile(path.join(outDir, `${slot.name}-960.webp`));
   await img.clone().avif({ quality: 50 }).toFile(path.join(outDir, `${slot.name}-960.avif`));

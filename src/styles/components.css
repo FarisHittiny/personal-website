@@ -40,6 +40,7 @@
   letter-spacing: 0.08em;
   text-transform: uppercase;
   text-decoration: none;
+  white-space: nowrap;
   color: var(--text-1);
   padding-block: var(--sp-2);
   border-bottom: 2px solid transparent;
@@ -186,9 +187,50 @@ figure figcaption {
 }
 
 .about-media img,
-.project-media img {
+.project-media img,
+.xp-media img,
+.fig-strip img {
   border: 1px solid var(--line-0);
   border-radius: var(--r-0);
+}
+
+/* Side-by-side figures inside an xp-card body. Column ratio matches the two
+   image aspects (4:5 and 4:3) so both render at equal height. Widths are
+   capped — the 960px sources are sized for retina, not for layout. */
+.fig-pair {
+  display: grid;
+  grid-template-columns: minmax(0, 3fr) minmax(0, 5fr);
+  gap: var(--sp-4);
+  margin-top: var(--sp-6);
+  max-width: 35rem;
+  margin-inline: auto;
+}
+
+.xp-media {
+  margin-top: var(--sp-6);
+  max-width: 32.5rem;
+  margin-inline: auto;
+}
+
+.fig-pair .xp-media {
+  margin-top: 0;
+}
+
+/* Contact-sheet strip under the operating-conditions table */
+.fig-strip {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: var(--sp-4);
+  margin-top: var(--sp-6);
+  max-width: 52rem;
+  margin-inline: auto;
+}
+
+@media (max-width: 48rem) {
+  .fig-pair,
+  .fig-strip {
+    grid-template-columns: 1fr;
+  }
 }
 
 /* ============ Experience / leadership cards ============ */

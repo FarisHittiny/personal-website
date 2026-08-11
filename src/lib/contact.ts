@@ -51,7 +51,7 @@ export function initContact(): void {
       form.reset();
     } catch {
       status.className = "form-status mono is-error";
-      status.textContent = "SEND FAILED — EMAIL ME AT FARISHITTINY@TAMU.EDU INSTEAD.";
+      status.textContent = "SEND FAILED — EMAIL ME AT FARIS@FARISHITTINY.COM INSTEAD.";
     } finally {
       setBusy(false);
     }

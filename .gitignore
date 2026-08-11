@@ -1,5 +1,8 @@
 node_modules/
 dist/
+# photo originals stay local; only optimized public/img outputs are committed
+assets-src/
+_incoming/
 *.local
 Thumbs.db
 .DS_Store
