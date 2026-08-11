@@ -32,7 +32,7 @@
 \addtolength{\evensidemargin}{-0.65in}
 \addtolength{\textwidth}{1.3in}
 \addtolength{\topmargin}{-.5in}
-\addtolength{\textheight}{1.0in}
+\addtolength{\textheight}{1.3in}
 
 \urlstyle{same}
 
@@ -52,7 +52,7 @@
 % Custom commands
 \newcommand{\resumeItem}[1]{
   \item\small{
-    {#1 \vspace{-2pt}}
+    {#1 \vspace{-3pt}}
   }
 }
 
@@ -107,7 +107,7 @@
      \textbf{Machine Learning \& AI}{: PyTorch, YOLOv8, Detectron2, OpenCV, Azure OpenAI, scikit-learn} \\
      \textbf{Programming \& Systems}{: Python, C\#, .NET, C++, C, JavaScript, SQL, Bash, MATLAB, Git, Linux, Docker, CI/CD} \\
      \textbf{Web \& Databases}{: Node.js, Express, REST APIs, PostgreSQL, SQL Server, Entity Framework Core, Open XML SDK} \\
-     \textbf{Cloud \& Enterprise Tools}{: AWS, Microsoft Copilot Studio, Microsoft 365 Copilot, SSMS, Visual Studio, VS Code} \\
+     \textbf{Cloud \& Enterprise Tools}{: AWS, Microsoft Copilot Studio, Salesforce Agentforce, Microsoft 365 Copilot, SSMS, Visual Studio, VS Code} \\
      \textbf{Embedded \& Acceleration}{: Verilog, FPGA Prototyping, LiteX, Renode, Verilator, Zephyr RTOS}
     }}
  \end{itemize}
@@ -123,6 +123,7 @@
       \resumeItemListStart
         \resumeItem{Built AI-powered invoice extraction and document understanding solutions on \textbf{Azure OpenAI}, creating anonymized datasets and validation pipelines to evaluate model output at scale.}
         \resumeItem{Designed an AI Interview Scheduling Agent in \textbf{Microsoft Copilot Studio}, integrating Azure OpenAI with \textbf{SAP SuccessFactors} to automate candidate scheduling end to end.}
+        \resumeItem{Built AI agents on \textbf{Salesforce Agentforce} --- designing agent actions grounded in org data and testing failure modes against production reliability requirements.}
         \resumeItem{Automated invoice processing for AT\&T, Verizon, and T-Mobile carrier billing data, replacing manual reconciliation steps in the Cellbill Manager platform.}
         \resumeItem{Developed and enhanced enterprise billing applications using \textbf{C\#, .NET, Entity Framework Core, SQL Server}, and Open XML SDK.}
         \resumeItem{Debugged database, API, networking, and proxy-authentication failures across enterprise environments; documented fixes and handoff procedures for the development team.}
@@ -133,7 +134,7 @@
       {Texas A\&M University}{College Station, TX}
       {AI/ML Undergraduate Research Assistant, Disease Management in Animal Systems}{May 2025 -- May 2026}
       \resumeItemListStart
-        \resumeItem{Developed and benchmarked \textbf{10+} deep learning models (YOLO, Mask R-CNN, Detectron2), achieving \textbf{\textasciitilde{}95\% accuracy} in object identification.}
+        \resumeItem{Developed and benchmarked \textbf{10+} deep learning models (YOLOv8, Mask R-CNN, Detectron2) for eartag detection in continuous field video.}
         \resumeItem{Processed and labeled \textbf{10,000+} images from 4+ months of continuous video, creating scalable datasets for model training and validation.}
         \resumeItem{Automated preprocessing pipelines that cut manual work by \textbf{60\%+} across an 11-member team, using Git and HPC scheduling (Slurm) for reproducibility.}
       \resumeItemListEnd
@@ -162,8 +163,8 @@
       \resumeProjectHeading
           {\textbf{RISC-V Accelerator on Zephyr} $|$ \emph{Verilog, LiteX, Zephyr RTOS} -- \href{https://github.com/FarisHittiny}{github.com/FarisHittiny}}{}
           \resumeItemListStart
-            \resumeItem{Designed a 6-register accelerator in Verilog with an AXI-Lite interface, integrated into a LiteX SoC.}
-            \resumeItem{Built and validated a Zephyr RTOS driver through \textbf{100+} Renode/Verilator simulations, benchmarking checksum workloads for a \textbf{3$\times$ speedup} over software-only execution.}
+            \resumeItem{Designed a custom popcount accelerator in Verilog with an AXI-Lite interface, integrated into a LiteX/VexRiscv SoC and driven by a Zephyr RTOS MMIO driver.}
+            \resumeItem{Benchmarked cycle-accurately under Verilator CI: \textbf{15.1$\times$ fewer cycles} than the software baseline on 4KB workloads, with results reproducible from the public repo.}
           \resumeItemListEnd
 
     \resumeSubHeadingListEnd
@@ -176,7 +177,7 @@
       {Membership Chair}{2026 -- Present}
       \resumeItemListStart
         \resumeItem{Lead membership recruitment, onboarding, and retention for one of the largest cultural organizations on campus.}
-        \resumeItem{Coordinate meetings and cultural events with the officer board.}
+        \resumeItem{Coordinate meetings and cultural events with the officer board, supporting member recruitment and retention growth.}
       \resumeItemListEnd
   \resumeSubHeadingListEnd
 
