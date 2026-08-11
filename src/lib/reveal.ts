@@ -28,9 +28,10 @@ export function initReveals(): void {
         }
       }
     },
-    // threshold 0 + a shallow bottom margin: reveal starts as soon as the first
-    // pixels enter, so tall elements (photo cards) don't lag behind the scroll.
-    { rootMargin: "0px 0px -5% 0px", threshold: 0 },
+    // threshold 0 so tall elements (photo cards) don't wait for 10% visibility;
+    // the -12% bottom margin holds the reveal until the element is far enough
+    // into view that the motion is actually seen.
+    { rootMargin: "0px 0px -12% 0px", threshold: 0 },
   );
 
   els.forEach((el) => io.observe(el));
