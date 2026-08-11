@@ -54,8 +54,8 @@
 
   /* Motion */
   --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
-  --dur: 600ms;
-  --stagger: 60ms;
+  --dur: 500ms;
+  --stagger: 45ms;
 
   /* Layout */
   --container: 68rem;

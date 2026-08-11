@@ -28,11 +28,21 @@ const TRACES: Record<string, string> = {
 function stageBox(id: string): string {
   const s = STAGES.find((st) => st.id === id)!;
   const b = BOX[id];
+  const cx = b.x + b.w / 2;
+  const cy = b.y + b.h / 2;
+  // A "\n" in sub wraps it onto two lines so long subs stay inside the box.
+  const lines = s.sub.split("\n");
+  const subText =
+    lines.length === 1
+      ? `<text class="dp-stage-sub" x="${cx}" y="${cy + 16}" text-anchor="middle">${s.sub}</text>`
+      : `<text class="dp-stage-sub" x="${cx}" y="${cy + 8}" text-anchor="middle">${lines[0]}</text>
+    <text class="dp-stage-sub" x="${cx}" y="${cy + 24}" text-anchor="middle">${lines[1]}</text>`;
+  const labelY = lines.length === 1 ? cy - 6 : cy - 12;
   return `<g class="dp-stage" id="stg-${id}" tabindex="0" role="button"
-      aria-label="${s.label}: ${s.sub}. Press Enter for details.">
+      aria-label="${s.label}: ${s.sub.replace("\n", " ")}. Press Enter for details.">
     <rect x="${b.x}" y="${b.y}" width="${b.w}" height="${b.h}" rx="2"/>
-    <text class="dp-stage-label" x="${b.x + b.w / 2}" y="${b.y + b.h / 2 - 6}" text-anchor="middle">${s.label}</text>
-    <text class="dp-stage-sub" x="${b.x + b.w / 2}" y="${b.y + b.h / 2 + 16}" text-anchor="middle">${s.sub}</text>
+    <text class="dp-stage-label" x="${cx}" y="${labelY}" text-anchor="middle">${s.label}</text>
+    ${subText}
   </g>`;
 }
 

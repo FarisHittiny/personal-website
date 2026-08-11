@@ -13,14 +13,14 @@ export const STAGES: Stage[] = [
   {
     id: "ram",
     label: "main_ram",
-    sub: "bench app @ 0x40000000",
+    sub: "bench app\n@ 0x40000000",
     detail:
       "The bare-metal benchmark app lives in main RAM and is jumped to from the LiteX BIOS console. It runs both the software baseline and the hardware path on the same 4 KB pseudo-random buffer, then verifies the results match.",
   },
   {
     id: "cpu",
     label: "VexRiscv",
-    sub: "rv32im · 1 MHz sys clock",
+    sub: "rv32im\n1 MHz sys clock",
     detail:
       "A VexRiscv soft core (standard config) executes the benchmark. On the software path it runs a byte-wise popcount loop (~38 cycles/byte, a libgcc call per byte on rv32im without Zbb). On the hardware path it drives the accelerator through MMIO.",
   },

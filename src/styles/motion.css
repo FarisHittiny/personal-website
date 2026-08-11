@@ -3,7 +3,7 @@
 @media (prefers-reduced-motion: no-preference) {
   html.js .reveal {
     opacity: 0;
-    transform: translateY(14px);
+    transform: translateY(8px);
     transition: opacity var(--dur) var(--ease-out), transform var(--dur) var(--ease-out);
     transition-delay: calc(var(--stagger-i, 0) * var(--stagger));
   }

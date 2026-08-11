@@ -62,7 +62,7 @@ export function mountDiagram(el: HTMLElement | null): void {
   const showStage = (id: string) => {
     const s = STAGES.find((st) => st.id === id);
     if (!s) return;
-    panelTitle.textContent = `${s.label.toUpperCase()} · ${s.sub.toUpperCase()}`;
+    panelTitle.textContent = `${s.label.toUpperCase()} · ${s.sub.replace("\n", " ").toUpperCase()}`;
     panelBody.textContent = s.detail;
   };
 
