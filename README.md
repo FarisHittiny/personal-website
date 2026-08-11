@@ -1,8 +1,8 @@
 # personal-website
 
-Personal site for [people.tamu.edu/~farishittiny](https://people.tamu.edu/~farishittiny/).
-Static build (Vite + vanilla TypeScript + three.js), served from a subdirectory —
-all paths are relative (`base: './'`).
+Personal site, deployed on Cloudflare Pages.
+Static build (Vite + vanilla TypeScript + three.js), served from the domain root —
+all paths are root-relative (`base: '/'`).
 
 ## Develop
 
@@ -30,15 +30,17 @@ npm run images
 Output filenames match what the markup references — swapping photos never
 requires a markup change.
 
-## Deploy (TAMU OAL webspace, U: drive)
+## Deploy (Cloudflare Pages)
 
-```
-.\scripts\deploy.ps1            # Stage A: preview deploy to U:\v2\
-.\scripts\deploy.ps1 -Promote   # Stage B: archive old site, go live at root
-```
+Deploys are automatic: push to `main` and Cloudflare Pages builds and publishes.
 
-The script never mirrors or blind-deletes; stale-file removal is a separate
-typed confirmation. `resume/Resume.pdf` keeps its historical URL.
+| Setting          | Value           |
+| ---------------- | --------------- |
+| Framework preset | Vite            |
+| Build command    | `npm run build` |
+| Output directory | `dist`          |
+
+Pull requests get their own preview deployment at a `*.pages.dev` URL.
 
 ## Contact form
 

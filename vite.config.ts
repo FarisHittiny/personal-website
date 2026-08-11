@@ -1,9 +1,8 @@
 import { defineConfig } from "vite";
 
-// Served from https://people.tamu.edu/~farishittiny/ (a subdirectory, not
-// domain root) — base must stay './' so every asset URL is relative.
+// Served from the domain root on Cloudflare Pages, so base is "/".
 export default defineConfig({
-  base: "./",
+  base: "/",
   build: {
     target: "es2022",
     assetsInlineLimit: 2048,
