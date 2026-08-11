@@ -18,12 +18,12 @@ export function mountDiagram(el: HTMLElement | null): void {
       a 4 KB data buffer, and the popcount core. A typical job: the CPU copies
       data into the buffer, writes LENGTH, sets CONTROL.START, polls STATUS
       until DONE, then reads RESULT. At 4 KB this takes 10,403 cycles against
-      157,583 for the software loop — 15.1 times fewer.
+      157,583 for the software loop: 15.1 times fewer.
     </p>
     <div class="dp-toolbar" role="group" aria-label="Diagram modes">
       <button type="button" class="btn btn-ghost dp-mode" id="dp-mode-step" aria-pressed="false">Step transaction</button>
       <button type="button" class="btn btn-ghost dp-mode" id="dp-mode-bench" aria-pressed="false">Run benchmark</button>
-      <span class="mono dim dp-hint" id="dp-hint">HOVER OR FOCUS A BLOCK — OR STEP THE TRANSACTION</span>
+      <span class="mono dim dp-hint" id="dp-hint">HOVER OR FOCUS A BLOCK, OR STEP THE TRANSACTION</span>
     </div>
     <div class="dp-scroll">
       <div class="dp-svg" id="dp-svg">${buildDatapathSvg()}</div>
@@ -62,14 +62,14 @@ export function mountDiagram(el: HTMLElement | null): void {
   const showStage = (id: string) => {
     const s = STAGES.find((st) => st.id === id);
     if (!s) return;
-    panelTitle.textContent = `${s.label.toUpperCase()} — ${s.sub.toUpperCase()}`;
+    panelTitle.textContent = `${s.label.toUpperCase()} · ${s.sub.toUpperCase()}`;
     panelBody.textContent = s.detail;
   };
 
   const showStep = (i: number) => {
     const step = stepper.go(i);
     if (!step) return;
-    panelTitle.textContent = `STEP ${i + 1}/${STEPS.length} — ${step.title.toUpperCase()}`;
+    panelTitle.textContent = `STEP ${i + 1}/${STEPS.length} · ${step.title.toUpperCase()}`;
     panelBody.textContent = step.desc;
     stepNum.textContent = `${i + 1} / ${STEPS.length}`;
   };
@@ -87,16 +87,16 @@ export function mountDiagram(el: HTMLElement | null): void {
         ? "←/→ TO STEP · ESC TO EXIT"
         : mode === "bench"
           ? "PICK A SIZE · ESC TO EXIT"
-          : "HOVER OR FOCUS A BLOCK — OR STEP THE TRANSACTION";
+          : "HOVER OR FOCUS A BLOCK, OR STEP THE TRANSACTION";
     if (mode === "step") {
       showStep(0);
     } else {
       stepper.go(-1);
       if (mode === "bench") {
         renderBenchmark(benchEl, motionOk);
-        panelTitle.textContent = "BENCHMARK — CYCLES, MEASURED";
+        panelTitle.textContent = "BENCHMARK · CYCLES, MEASURED";
         panelBody.textContent =
-          "Both paths run in the same binary on the same buffer, timed with the LiteX timer (cycle-exact under Verilator). The hardware bar splits into the MMIO buffer copy and the core's compute time — the copy dominates.";
+          "Both paths run in the same binary on the same buffer, timed with the LiteX timer (cycle-exact under Verilator). The hardware bar splits into the MMIO buffer copy and the core's compute time; the copy dominates.";
       } else {
         panelTitle.textContent = "DATA PATH";
         panelBody.textContent =

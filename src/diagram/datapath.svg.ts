@@ -29,7 +29,7 @@ function stageBox(id: string): string {
   const s = STAGES.find((st) => st.id === id)!;
   const b = BOX[id];
   return `<g class="dp-stage" id="stg-${id}" tabindex="0" role="button"
-      aria-label="${s.label} — ${s.sub}. Press Enter for details.">
+      aria-label="${s.label}: ${s.sub}. Press Enter for details.">
     <rect x="${b.x}" y="${b.y}" width="${b.w}" height="${b.h}" rx="2"/>
     <text class="dp-stage-label" x="${b.x + b.w / 2}" y="${b.y + b.h / 2 - 6}" text-anchor="middle">${s.label}</text>
     <text class="dp-stage-sub" x="${b.x + b.w / 2}" y="${b.y + b.h / 2 + 16}" text-anchor="middle">${s.sub}</text>
@@ -65,7 +65,7 @@ export function buildDatapathSvg(): string {
     ${traces}
     ${stages}
     <!-- register table -->
-    <text class="dp-table-title" x="30" y="318">REGISTER MAP — LIVE VALUES</text>
+    <text class="dp-table-title" x="30" y="318">REGISTER MAP · LIVE VALUES</text>
     ${regRows}
     <!-- transaction token -->
     <circle class="dp-token" id="dp-token" r="5" cx="-20" cy="-20"/>

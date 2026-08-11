@@ -168,7 +168,7 @@
 }
 
 .pin-key::after {
-  content: " —";
+  content: " ·";
   color: var(--line-1);
 }
 

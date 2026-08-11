@@ -47,11 +47,11 @@ export function initContact(): void {
       });
       if (!res.ok) throw new Error(String(res.status));
       status.className = "form-status mono is-ok";
-      status.textContent = "SENT — I'LL GET BACK TO YOU SOON.";
+      status.textContent = "SENT. I'LL GET BACK TO YOU SOON.";
       form.reset();
     } catch {
       status.className = "form-status mono is-error";
-      status.textContent = "SEND FAILED — EMAIL ME AT FARIS@FARISHITTINY.COM INSTEAD.";
+      status.textContent = "SEND FAILED. EMAIL ME AT FARIS@FARISHITTINY.COM INSTEAD.";
     } finally {
       setBusy(false);
     }
