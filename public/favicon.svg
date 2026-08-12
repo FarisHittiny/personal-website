@@ -1,26 +1,22 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32">
-  <!-- IC package marking: navy body, six legs, pin-1 dot, FH in the package
-       silhouette. Background is transparent so the tab's own color shows
-       through; the mark is sized to fill the canvas edge to edge. Glyphs are
-       drawn as rects, not <text> — a favicon cannot rely on the host having
-       any particular monospace font. Colors are ink-0 / ink-1 / accent from
-       src/styles/tokens.css. -->
+  <!-- Package outline with pins on all four sides and FH inside. Clear ground:
+       no background rect, so the tab's own color shows between the pins. Box
+       and pins run to the canvas edge to keep the monogram as large as the
+       design allows.
+
+       Glyphs are rects, not <text> — the original used font-family="monospace",
+       which resolves to whatever the viewer's machine happens to have and does
+       not match the site's IBM Plex Mono.
+
+       Colors are accent / accent-dim from src/styles/tokens.css. -->
+  <path d="M11 7V0.6M16 7V0.6M21 7V0.6M11 31.4V25M16 31.4V25M21 31.4V25M7 11H0.6M7 16H0.6M7 21H0.6M31.4 11H25M31.4 16H25M31.4 21H25" stroke="#9fb1d1" stroke-width="2.2"/>
+  <rect x="7" y="7" width="18" height="18" fill="none" stroke="#16386f" stroke-width="2.2"/>
   <g fill="#16386f">
-    <rect x="7.6" y="2.2" width="2.8" height="3.3"/>
-    <rect x="14.6" y="2.2" width="2.8" height="3.3"/>
-    <rect x="21.6" y="2.2" width="2.8" height="3.3"/>
-    <rect x="7.6" y="26.5" width="2.8" height="3.3"/>
-    <rect x="14.6" y="26.5" width="2.8" height="3.3"/>
-    <rect x="21.6" y="26.5" width="2.8" height="3.3"/>
-    <rect x="2" y="5.5" width="28" height="21" rx="1"/>
-  </g>
-  <circle cx="4.6" cy="7.8" r="1.2" fill="#f2eee3" fill-opacity="0.5"/>
-  <g fill="#faf8f1">
-    <rect x="5.8" y="9.5" width="3.2" height="13"/>
-    <rect x="5.8" y="9.5" width="7.8" height="2.9"/>
-    <rect x="5.8" y="14.6" width="6.4" height="2.9"/>
-    <rect x="17.6" y="9.5" width="3.2" height="13"/>
-    <rect x="23" y="9.5" width="3.2" height="13"/>
-    <rect x="17.6" y="14.6" width="8.6" height="2.9"/>
+    <rect x="9" y="11.5" width="2.2" height="9"/>
+    <rect x="9" y="11.5" width="5.4" height="2.1"/>
+    <rect x="9" y="15.45" width="4.4" height="2.1"/>
+    <rect x="17" y="11.5" width="2.2" height="9"/>
+    <rect x="20.8" y="11.5" width="2.2" height="9"/>
+    <rect x="17" y="15.45" width="6" height="2.1"/>
   </g>
 </svg>
