@@ -1,6 +1,25 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32">
+  <!-- IC package marking: navy body on cream, six legs, pin-1 dot, FH in the
+       package silhouette. Glyphs are drawn as rects, not <text> — a favicon
+       cannot rely on the host having any particular monospace font. Colors are
+       ink-0 / ink-1 / accent from src/styles/tokens.css. -->
   <rect width="32" height="32" fill="#f2eee3"/>
-  <rect x="8" y="8" width="16" height="16" fill="none" stroke="#16386f" stroke-width="1.5"/>
-  <path d="M12 8V4M16 8V4M20 8V4M12 28v-4M16 28v-4M20 28v-4M8 12H4M8 16H4M8 20H4M28 12h-4M28 16h-4M28 20h-4" stroke="#9fb1d1" stroke-width="1.5"/>
-  <text x="16" y="20.5" font-family="monospace" font-size="9" font-weight="bold" fill="#16386f" text-anchor="middle">FH</text>
+  <g fill="#16386f">
+    <rect x="7.8" y="4.6" width="2.4" height="2.4"/>
+    <rect x="14.8" y="4.6" width="2.4" height="2.4"/>
+    <rect x="21.8" y="4.6" width="2.4" height="2.4"/>
+    <rect x="7.8" y="25" width="2.4" height="2.4"/>
+    <rect x="14.8" y="25" width="2.4" height="2.4"/>
+    <rect x="21.8" y="25" width="2.4" height="2.4"/>
+    <rect x="4" y="7" width="24" height="18" rx="1"/>
+  </g>
+  <circle cx="6.9" cy="9.2" r="1.15" fill="#f2eee3" fill-opacity="0.5"/>
+  <g fill="#faf8f1">
+    <rect x="7.4" y="11" width="2.6" height="10"/>
+    <rect x="7.4" y="11" width="6.4" height="2.4"/>
+    <rect x="7.4" y="15.2" width="5.2" height="2.4"/>
+    <rect x="17.2" y="11" width="2.6" height="10"/>
+    <rect x="22" y="11" width="2.6" height="10"/>
+    <rect x="17.2" y="15.2" width="7.4" height="2.4"/>
+  </g>
 </svg>

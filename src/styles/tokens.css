@@ -20,6 +20,7 @@
   --accent: #16386f;
   --accent-hi: #0f2a55;
   --accent-dim: #9fb1d1;
+  --on-accent: #f7f5ee; /* text/icons on a navy fill */
 
   /* Status — diagram only */
   --status-ok: #2c7a4c;

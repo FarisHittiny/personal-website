@@ -16,7 +16,9 @@ await mkdir(outDir, { recursive: true });
 
 const SLOTS = [
   { name: "portrait", w: 960, h: 1200 },
-  { name: "eartag", w: 960, h: 720 },
+  // extract: attention parks the band high and fills the top third with
+  // ceiling — shifted down to sit on the group and the poster (source 3024x4032).
+  { name: "eartag", w: 960, h: 720, extract: { left: 0, top: 1134, width: 3024, height: 2268 } },
   { name: "sitevisit", w: 960, h: 1200 },
   { name: "awards", w: 960, h: 720 },
   { name: "asa", w: 960, h: 720 },

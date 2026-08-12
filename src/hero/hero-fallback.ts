@@ -31,16 +31,17 @@ export function renderHeroFallback(el: HTMLElement): void {
       const dy = pts[i][1] - pts[j][1];
       const d2 = dx * dx + dy * dy;
       if (d2 < 210 * 210) {
-        const o = (1 - Math.sqrt(d2) / 210) * 0.35;
-        lines += `<line x1="${pts[i][0].toFixed(1)}" y1="${pts[i][1].toFixed(1)}" x2="${pts[j][0].toFixed(1)}" y2="${pts[j][1].toFixed(1)}" stroke="#adafb6" stroke-opacity="${o.toFixed(2)}"/>`;
+        const o = (1 - Math.sqrt(d2) / 210) * 0.5;
+        lines += `<line x1="${pts[i][0].toFixed(1)}" y1="${pts[i][1].toFixed(1)}" x2="${pts[j][0].toFixed(1)}" y2="${pts[j][1].toFixed(1)}" stroke="#d6d0bf" stroke-opacity="${o.toFixed(2)}"/>`;
       }
     }
   }
 
   let dots = "";
   for (const [x, y] of pts) {
-    const gold = rand() < 0.18;
-    dots += `<circle cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="${gold ? 2.2 : 1.4}" fill="${gold ? "#16386f" : "#989daa"}" fill-opacity="${gold ? 0.8 : 0.6}"/>`;
+    // accent nodes in --accent, the rest in --line-1, matching the WebGL lattice
+    const accent = rand() < 0.18;
+    dots += `<circle cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="${accent ? 2.2 : 1.4}" fill="${accent ? "#16386f" : "#b5ae99"}" fill-opacity="${accent ? 0.8 : 0.7}"/>`;
   }
 
   el.innerHTML =

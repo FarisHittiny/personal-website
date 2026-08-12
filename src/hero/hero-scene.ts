@@ -62,9 +62,9 @@ const POINT_FRAG = /* glsl */ `
     float d = length(c);
     if (d > 0.5) discard;
     float a = smoothstep(0.5, 0.15, d) * (1.0 - vDepth * 0.85);
-    vec3 gold = vec3(0.086, 0.220, 0.435);
-    vec3 grey = vec3(0.596, 0.616, 0.667);
-    gl_FragColor = vec4(mix(grey, gold, vGold), a * (vGold > 0.5 ? 0.9 : 0.55));
+    vec3 accent = vec3(0.086, 0.220, 0.435); // --accent  #16386f
+    vec3 trace = vec3(0.710, 0.682, 0.600); // --line-1  #b5ae99
+    gl_FragColor = vec4(mix(trace, accent, vGold), a * (vGold > 0.5 ? 0.9 : 0.55));
   }
 `;
 
@@ -83,7 +83,9 @@ const LINE_VERT = /* glsl */ `
 const LINE_FRAG = /* glsl */ `
   varying float vDepth;
   void main() {
-    gl_FragColor = vec4(0.678, 0.686, 0.714, 0.3 * (1.0 - vDepth * 0.9));
+    // --line-0 #d6d0bf; alpha lifted from 0.3 to hold visibility now that the
+    // trace color sits closer to the cream page than the old cool grey did.
+    gl_FragColor = vec4(0.839, 0.816, 0.749, 0.45 * (1.0 - vDepth * 0.9));
   }
 `;
 
