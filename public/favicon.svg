@@ -1,22 +1,15 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32">
-  <!-- Package outline with pins on all four sides and FH inside. Clear ground:
-       no background rect, so the tab's own color shows between the pins. Box
-       and pins run to the canvas edge to keep the monogram as large as the
-       design allows.
-
-       Glyphs are rects, not <text> — the original used font-family="monospace",
-       which resolves to whatever the viewer's machine happens to have and does
-       not match the site's IBM Plex Mono.
-
-       Colors are accent / accent-dim from src/styles/tokens.css. -->
-  <path d="M11 7V0.6M16 7V0.6M21 7V0.6M11 31.4V25M16 31.4V25M21 31.4V25M7 11H0.6M7 16H0.6M7 21H0.6M31.4 11H25M31.4 16H25M31.4 21H25" stroke="#9fb1d1" stroke-width="2.2"/>
-  <rect x="7" y="7" width="18" height="18" fill="none" stroke="#16386f" stroke-width="2.2"/>
-  <g fill="#16386f">
-    <rect x="9" y="11.5" width="2.2" height="9"/>
-    <rect x="9" y="11.5" width="5.4" height="2.1"/>
-    <rect x="9" y="15.45" width="4.4" height="2.1"/>
-    <rect x="17" y="11.5" width="2.2" height="9"/>
-    <rect x="20.8" y="11.5" width="2.2" height="9"/>
-    <rect x="17" y="15.45" width="6" height="2.1"/>
+  <!-- 8-point sunburst, filled solid, FH in cream at the center. No background
+       rect — the tab's own color shows around the spikes. Glyphs are rects,
+       not <text>, so they render identically regardless of the viewer's fonts.
+       Colors are accent / ink-1 from src/styles/tokens.css. -->
+  <path d="M16,0.5 L19.9,6.58 L26.96,5.04 L25.42,12.1 L31.5,16 L25.42,19.9 L26.96,26.96 L19.9,25.42 L16,31.5 L12.1,25.42 L5.04,26.96 L6.58,19.9 L0.5,16 L6.58,12.1 L5.04,5.04 L12.1,6.58 Z" fill="#16386f"/>
+  <g fill="#faf8f1">
+    <rect x="10.2" y="9.6" width="2.25" height="13.2"/>
+    <rect x="10.2" y="9.6" width="5.55" height="2.25"/>
+    <rect x="10.2" y="15.08" width="4.44" height="2.25"/>
+    <rect x="14.56" y="9.6" width="2.25" height="13.2"/>
+    <rect x="17.61" y="9.6" width="2.25" height="13.2"/>
+    <rect x="14.56" y="15.08" width="4.99" height="2.25"/>
   </g>
 </svg>
