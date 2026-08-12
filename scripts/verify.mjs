@@ -30,7 +30,7 @@ async function shoot(name, contextOpts, viewportLabel) {
   await page.goto(url, { waitUntil: "networkidle" });
   await page.waitForTimeout(600);
 
-  // Scroll through so lazy content and reveals fire before the full-page shot.
+  // Scroll through so lazy content loads before the full-page shot.
   await page.evaluate(async () => {
     const step = window.innerHeight * 0.8;
     for (let y = 0; y < document.body.scrollHeight; y += step) {

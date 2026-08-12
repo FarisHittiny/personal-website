@@ -52,10 +52,8 @@
   /* Shape — datasheets have sharp corners */
   --r-0: 2px;
 
-  /* Motion */
+  /* Motion — hover/interaction transitions only */
   --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
-  --dur: 700ms;
-  --stagger: 70ms;
 
   /* Layout */
   --container: 68rem;

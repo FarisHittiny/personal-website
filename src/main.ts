@@ -5,17 +5,12 @@ import "./styles/components.css";
 import "./styles/motion.css";
 import "./styles/diagram.css";
 
-import { initReveals } from "./lib/reveal";
 import { initCursor } from "./lib/cursor";
 import { detectCapabilities } from "./lib/capabilities";
 import { initContact } from "./lib/contact";
 import { mountDiagram } from "./diagram";
 import { mountHero } from "./hero";
 
-// Signal JS is alive — motion.css only hides .reveal elements under html.js.
-document.documentElement.classList.add("js");
-
-initReveals();
 initCursor();
 initContact();
 mountDiagram(document.getElementById("datapath"));
