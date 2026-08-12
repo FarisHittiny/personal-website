@@ -1,27 +1,26 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32">
-  <!-- FH monogram on a clear ground: no plate behind it, so the tab's own color
-       shows through and the letterforms use the whole canvas (cap height 24 of
-       32). Glyphs are rects, not <text> — a favicon cannot rely on the host
-       having any particular monospace font.
-
-       The mark inverts on dark browser chrome; navy on a dark tab is close to
-       invisible. SVG favicons honour prefers-color-scheme, so the fill swaps
-       here. The .ico and PNG fallbacks stay navy: they are static formats, and
-       only browsers without SVG favicon support fall back to them.
-
-       Colors are accent / ink-1 from src/styles/tokens.css. -->
-  <style>
-    .mark { fill: #16386f; }
-    @media (prefers-color-scheme: dark) {
-      .mark { fill: #faf8f1; }
-    }
-  </style>
-  <g class="mark">
-    <rect x="1.5" y="4" width="5" height="24"/>
-    <rect x="1.5" y="4" width="12.5" height="4.6"/>
-    <rect x="1.5" y="13.7" width="10.5" height="4.6"/>
-    <rect x="17.5" y="4" width="5" height="24"/>
-    <rect x="25.5" y="4" width="5" height="24"/>
-    <rect x="17.5" y="13.7" width="13" height="4.6"/>
+  <!-- IC package marking: navy body, six legs, pin-1 dot, FH in the package
+       silhouette. Background is transparent so the tab's own color shows
+       through; the mark is sized to fill the canvas edge to edge. Glyphs are
+       drawn as rects, not <text> — a favicon cannot rely on the host having
+       any particular monospace font. Colors are ink-0 / ink-1 / accent from
+       src/styles/tokens.css. -->
+  <g fill="#16386f">
+    <rect x="7.6" y="2.2" width="2.8" height="3.3"/>
+    <rect x="14.6" y="2.2" width="2.8" height="3.3"/>
+    <rect x="21.6" y="2.2" width="2.8" height="3.3"/>
+    <rect x="7.6" y="26.5" width="2.8" height="3.3"/>
+    <rect x="14.6" y="26.5" width="2.8" height="3.3"/>
+    <rect x="21.6" y="26.5" width="2.8" height="3.3"/>
+    <rect x="2" y="5.5" width="28" height="21" rx="1"/>
+  </g>
+  <circle cx="4.6" cy="7.8" r="1.2" fill="#f2eee3" fill-opacity="0.5"/>
+  <g fill="#faf8f1">
+    <rect x="5.8" y="9.5" width="3.2" height="13"/>
+    <rect x="5.8" y="9.5" width="7.8" height="2.9"/>
+    <rect x="5.8" y="14.6" width="6.4" height="2.9"/>
+    <rect x="17.6" y="9.5" width="3.2" height="13"/>
+    <rect x="23" y="9.5" width="3.2" height="13"/>
+    <rect x="17.6" y="14.6" width="8.6" height="2.9"/>
   </g>
 </svg>
