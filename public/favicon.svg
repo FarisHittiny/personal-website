@@ -1,9 +1,9 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32">
-  <!-- 8-point sunburst, filled solid, FH in cream at the center. No background
-       rect — the tab's own color shows around the spikes. Glyphs are rects,
-       not <text>, so they render identically regardless of the viewer's fonts.
+  <!-- Rounded navy badge, FH in cream at the center. No background rect — the
+       tab's own color shows around the badge. Glyphs are rects, not <text>,
+       so they render identically regardless of the viewer's fonts.
        Colors are accent / ink-1 from src/styles/tokens.css. -->
-  <path d="M16,0.5 L19.9,6.58 L26.96,5.04 L25.42,12.1 L31.5,16 L25.42,19.9 L26.96,26.96 L19.9,25.42 L16,31.5 L12.1,25.42 L5.04,26.96 L6.58,19.9 L0.5,16 L6.58,12.1 L5.04,5.04 L12.1,6.58 Z" fill="#16386f"/>
+  <rect x="1" y="1" width="30" height="30" rx="9" fill="#16386f"/>
   <g fill="#faf8f1">
     <rect x="10.2" y="9.6" width="2.25" height="13.2"/>
     <rect x="10.2" y="9.6" width="5.55" height="2.25"/>
