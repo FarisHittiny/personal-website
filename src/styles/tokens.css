@@ -2,28 +2,28 @@
    Single source of truth: every color/size/ease in the site resolves here. */
 
 :root {
-  /* Ink (surfaces) */
-  --ink-0: #0a0a0c; /* page base — near-black, hint of blue-graphite */
-  --ink-1: #121216; /* raised surface / cards */
-  --ink-2: #1b1b21; /* hover surface, table stripes */
+  /* Ink (surfaces) — cream datasheet paper, softer than white */
+  --ink-0: #f2eee3; /* page base — warm cream */
+  --ink-1: #faf8f1; /* raised surface / cards — soft paper white */
+  --ink-2: #e8e3d4; /* hover surface, table stripes */
 
-  /* Lines */
-  --line-0: #26262e; /* hairline rules, traces at rest */
-  --line-1: #3a3a44; /* emphasized rules, borders */
+  /* Lines — faded print rules */
+  --line-0: #d6d0bf; /* hairline rules, traces at rest */
+  --line-1: #b5ae99; /* emphasized rules, borders */
 
-  /* Text */
-  --text-0: #edede8; /* primary — warm off-white, ~14.8:1 on ink-0 */
-  --text-1: #a8a8a4; /* secondary, ~7:1 */
-  --text-2: #8b8b88; /* metadata/pin labels — mono or large only */
+  /* Text — navy ink on paper */
+  --text-0: #1a2338; /* primary — navy ink, ~13:1 on ink-0 */
+  --text-1: #3e4a68; /* secondary, ~8:1 */
+  --text-2: #5d6a8a; /* metadata/pin labels — mono or large only */
 
-  /* Accent — aged gold. The only metal on the board; spend it sparingly. */
-  --accent: #c9a227;
-  --accent-hi: #e8c558;
-  --accent-dim: #7a6420;
+  /* Accent — navy. The only ink color on the paper; spend it sparingly. */
+  --accent: #16386f;
+  --accent-hi: #0f2a55;
+  --accent-dim: #9fb1d1;
 
   /* Status — diagram only */
-  --status-ok: #4fa870;
-  --status-err: #c4554d;
+  --status-ok: #2c7a4c;
+  --status-err: #b2483e;
 
   /* Type */
   --font-display: "Fraunces", Georgia, "Times New Roman", serif;

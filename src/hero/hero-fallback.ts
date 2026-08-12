@@ -32,7 +32,7 @@ export function renderHeroFallback(el: HTMLElement): void {
       const d2 = dx * dx + dy * dy;
       if (d2 < 210 * 210) {
         const o = (1 - Math.sqrt(d2) / 210) * 0.35;
-        lines += `<line x1="${pts[i][0].toFixed(1)}" y1="${pts[i][1].toFixed(1)}" x2="${pts[j][0].toFixed(1)}" y2="${pts[j][1].toFixed(1)}" stroke="#3a3a44" stroke-opacity="${o.toFixed(2)}"/>`;
+        lines += `<line x1="${pts[i][0].toFixed(1)}" y1="${pts[i][1].toFixed(1)}" x2="${pts[j][0].toFixed(1)}" y2="${pts[j][1].toFixed(1)}" stroke="#adafb6" stroke-opacity="${o.toFixed(2)}"/>`;
       }
     }
   }
@@ -40,14 +40,14 @@ export function renderHeroFallback(el: HTMLElement): void {
   let dots = "";
   for (const [x, y] of pts) {
     const gold = rand() < 0.18;
-    dots += `<circle cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="${gold ? 2.2 : 1.4}" fill="${gold ? "#c9a227" : "#4a4a54"}" fill-opacity="${gold ? 0.8 : 0.6}"/>`;
+    dots += `<circle cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="${gold ? 2.2 : 1.4}" fill="${gold ? "#16386f" : "#989daa"}" fill-opacity="${gold ? 0.8 : 0.6}"/>`;
   }
 
   el.innerHTML =
     `<svg viewBox="0 0 ${W} ${H}" preserveAspectRatio="xMidYMid slice" aria-hidden="true">` +
     `<defs><radialGradient id="hero-fade" cx="35%" cy="40%" r="75%">` +
-    `<stop offset="0%" stop-color="#0a0a0c" stop-opacity="0"/>` +
-    `<stop offset="100%" stop-color="#0a0a0c" stop-opacity="0.92"/>` +
+    `<stop offset="0%" stop-color="#f2eee3" stop-opacity="0"/>` +
+    `<stop offset="100%" stop-color="#f2eee3" stop-opacity="0.92"/>` +
     `</radialGradient></defs>` +
     lines +
     dots +

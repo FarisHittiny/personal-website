@@ -5,7 +5,6 @@
  *  60 frames average under 30 fps. */
 
 import {
-  AdditiveBlending,
   BufferAttribute,
   BufferGeometry,
   LineSegments,
@@ -63,8 +62,8 @@ const POINT_FRAG = /* glsl */ `
     float d = length(c);
     if (d > 0.5) discard;
     float a = smoothstep(0.5, 0.15, d) * (1.0 - vDepth * 0.85);
-    vec3 gold = vec3(0.788, 0.635, 0.153);
-    vec3 grey = vec3(0.29, 0.29, 0.33);
+    vec3 gold = vec3(0.086, 0.220, 0.435);
+    vec3 grey = vec3(0.596, 0.616, 0.667);
     gl_FragColor = vec4(mix(grey, gold, vGold), a * (vGold > 0.5 ? 0.9 : 0.55));
   }
 `;
@@ -84,7 +83,7 @@ const LINE_VERT = /* glsl */ `
 const LINE_FRAG = /* glsl */ `
   varying float vDepth;
   void main() {
-    gl_FragColor = vec4(0.24, 0.24, 0.29, 0.15 * (1.0 - vDepth * 0.9));
+    gl_FragColor = vec4(0.678, 0.686, 0.714, 0.3 * (1.0 - vDepth * 0.9));
   }
 `;
 
@@ -140,7 +139,6 @@ export function startHeroScene(el: HTMLElement): void {
     uniforms,
     transparent: true,
     depthWrite: false,
-    blending: AdditiveBlending,
   });
   scene.add(new Points(pGeo, pMat));
 

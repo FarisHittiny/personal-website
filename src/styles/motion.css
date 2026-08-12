@@ -1,3 +1,16 @@
+/* Reveals — base state is VISIBLE. Only when JS is running (html.js) and
+   motion is allowed do elements start hidden, then quickly fade in. */
+@media (prefers-reduced-motion: no-preference) {
+  html.js .reveal {
+    opacity: 0;
+    transition: opacity 320ms var(--ease-out);
+  }
+
+  html.js .reveal.is-revealed {
+    opacity: 1;
+  }
+}
+
 /* ============ Custom cursor ============ */
 /* Overlay elements; native cursor stays functional. Fine pointers only. */
 .cursor-dot,

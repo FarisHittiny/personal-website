@@ -90,7 +90,7 @@
 
 .btn-solid {
   background: var(--accent);
-  color: #141204;
+  color: #f7f5ee;
   font-weight: 500;
 }
 
@@ -106,7 +106,7 @@
 
 .btn-solid:hover {
   background: var(--accent-hi);
-  color: #141204;
+  color: #f7f5ee;
 }
 
 .btn-ghost {
@@ -234,10 +234,11 @@ figure figcaption {
 }
 
 /* ============ Experience / leadership cards ============ */
+/* Head sits on top of the body, separated by a hairline rule. */
 .xp-card {
   display: grid;
-  grid-template-columns: minmax(0, 4fr) minmax(0, 8fr);
-  gap: var(--sp-8);
+  grid-template-columns: 1fr;
+  gap: var(--sp-6);
   padding: var(--sp-8);
   background: var(--ink-1);
   border: 1px solid var(--line-0);
@@ -252,6 +253,11 @@ figure figcaption {
 .xp-meta {
   color: var(--text-2);
   margin-top: var(--sp-2);
+}
+
+.xp-head {
+  border-bottom: 1px solid var(--line-0);
+  padding-bottom: var(--sp-6);
 }
 
 .xp-body p + p {
