@@ -212,28 +212,24 @@ figure figcaption {
    inner edge. Nothing is centered — a centered block inside a left-set text
    column aligns to neither edge and reads as floating. */
 
-/* Side-by-side figures inside an xp-card body. Column ratio matches the two
-   image aspects (4:5 and 4:3) so both render at equal height. */
-.fig-pair {
+/* Card body split into prose and figures, same 7fr/5fr ratio as .about-grid so
+   Experience and Leadership read as the same pattern the About section sets.
+   Figures beside the copy rather than under it — stacked below, they left the
+   right half of the card empty. */
+.xp-cols {
   display: grid;
-  grid-template-columns: minmax(0, 3fr) minmax(0, 5fr);
-  gap: var(--sp-4);
-  margin-top: var(--sp-6);
+  grid-template-columns: minmax(0, 7fr) minmax(0, 5fr);
+  gap: var(--sp-8);
+  align-items: start;
 }
 
 .xp-media {
   margin-top: var(--sp-6);
 }
 
-/* A lone figure in the body flow tracks the prose measure (p is 62ch), so both
-   its edges land on the paragraph column. Spanning the whole card would make a
-   single 4:3 photo taller than the copy it illustrates. Multi-image blocks
-   (.fig-pair, .fig-strip) still span the full content box — they divide it. */
-.xp-body > .xp-media {
-  max-width: 62ch;
-}
-
-.fig-pair .xp-media {
+/* In the right column the figure heads the column, so it needs no lead-in gap;
+   it aligns to the top of the prose beside it. */
+.xp-cols > .xp-media {
   margin-top: 0;
 }
 
@@ -246,10 +242,16 @@ figure figcaption {
   margin-top: var(--sp-6);
 }
 
+/* Single column on mobile: prose first, figures below — same order and
+   behaviour as .about-grid. */
 @media (max-width: 48rem) {
-  .fig-pair,
+  .xp-cols,
   .fig-strip {
     grid-template-columns: 1fr;
+  }
+
+  .xp-cols > .xp-media {
+    margin-top: var(--sp-6);
   }
 }
 

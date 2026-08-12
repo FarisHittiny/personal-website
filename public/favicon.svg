@@ -1,25 +1,26 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32">
-  <!-- IC package marking: navy body on cream, six legs, pin-1 dot, FH in the
-       package silhouette. Glyphs are drawn as rects, not <text> — a favicon
-       cannot rely on the host having any particular monospace font. Colors are
-       ink-0 / ink-1 / accent from src/styles/tokens.css. -->
-  <rect width="32" height="32" fill="#f2eee3"/>
+  <!-- IC package marking: navy body, six legs, pin-1 dot, FH in the package
+       silhouette. Background is transparent so the tab's own color shows
+       through; the mark is sized to fill the canvas edge to edge. Glyphs are
+       drawn as rects, not <text> — a favicon cannot rely on the host having
+       any particular monospace font. Colors are ink-0 / ink-1 / accent from
+       src/styles/tokens.css. -->
   <g fill="#16386f">
-    <rect x="7.8" y="4.6" width="2.4" height="2.4"/>
-    <rect x="14.8" y="4.6" width="2.4" height="2.4"/>
-    <rect x="21.8" y="4.6" width="2.4" height="2.4"/>
-    <rect x="7.8" y="25" width="2.4" height="2.4"/>
-    <rect x="14.8" y="25" width="2.4" height="2.4"/>
-    <rect x="21.8" y="25" width="2.4" height="2.4"/>
-    <rect x="4" y="7" width="24" height="18" rx="1"/>
+    <rect x="7.6" y="2.2" width="2.8" height="3.3"/>
+    <rect x="14.6" y="2.2" width="2.8" height="3.3"/>
+    <rect x="21.6" y="2.2" width="2.8" height="3.3"/>
+    <rect x="7.6" y="26.5" width="2.8" height="3.3"/>
+    <rect x="14.6" y="26.5" width="2.8" height="3.3"/>
+    <rect x="21.6" y="26.5" width="2.8" height="3.3"/>
+    <rect x="2" y="5.5" width="28" height="21" rx="1"/>
   </g>
-  <circle cx="6.9" cy="9.2" r="1.15" fill="#f2eee3" fill-opacity="0.5"/>
+  <circle cx="4.6" cy="7.8" r="1.2" fill="#f2eee3" fill-opacity="0.5"/>
   <g fill="#faf8f1">
-    <rect x="7.4" y="11" width="2.6" height="10"/>
-    <rect x="7.4" y="11" width="6.4" height="2.4"/>
-    <rect x="7.4" y="15.2" width="5.2" height="2.4"/>
-    <rect x="17.2" y="11" width="2.6" height="10"/>
-    <rect x="22" y="11" width="2.6" height="10"/>
-    <rect x="17.2" y="15.2" width="7.4" height="2.4"/>
+    <rect x="5.8" y="9.5" width="3.2" height="13"/>
+    <rect x="5.8" y="9.5" width="7.8" height="2.9"/>
+    <rect x="5.8" y="14.6" width="6.4" height="2.9"/>
+    <rect x="17.6" y="9.5" width="3.2" height="13"/>
+    <rect x="23" y="9.5" width="3.2" height="13"/>
+    <rect x="17.6" y="14.6" width="8.6" height="2.9"/>
   </g>
 </svg>
