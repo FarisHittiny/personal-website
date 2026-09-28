@@ -28,7 +28,7 @@ if (year) year.textContent = String(new Date().getFullYear());
 const API_BASE = import.meta.env.VITE_RAG_API || "https://catalog-rag-931113045677.us-south1.run.app";
 const WAKE_NOTE_AFTER_MS = 3000;
 const REQUEST_TIMEOUT_MS = 60_000;
-const ABSTAINED = "The model abstained: the retrieved records did not answer the question.";
+const ABSTAINED = "The catalog doesn't cover that (or the model wasn't sure). Retrieved courses are under HOW IT GOT THERE.";
 
 interface Retrieved {
   course_id: string;
