@@ -30,59 +30,23 @@
   gap: var(--sp-2);
 }
 
-/* Chips and switches share the small-control look of the diagram toolbar. */
-.rag-chip,
-.rag-toggle {
+/* Chips share the small-control look of the diagram toolbar. */
+.rag-chip {
   padding: var(--sp-1) var(--sp-3);
   background: none;
   border: 1px solid var(--line-1);
   border-radius: var(--r-0);
   color: var(--text-1);
   text-align: left;
-  cursor: pointer;
-  transition: border-color 160ms var(--ease-out), color 160ms var(--ease-out),
-    background 160ms var(--ease-out);
-}
-
-.rag-chip {
   text-transform: none; /* example questions read as typed */
   letter-spacing: 0.02em;
+  cursor: pointer;
+  transition: border-color 160ms var(--ease-out), color 160ms var(--ease-out);
 }
 
-.rag-chip:hover,
-.rag-toggle:hover {
+.rag-chip:hover {
   border-color: var(--accent);
   color: var(--accent-hi);
-}
-
-.rag-toggle::before {
-  content: "○";
-  display: inline-block;
-  width: 1.2em;
-  color: var(--text-2);
-}
-
-.rag-toggle[aria-checked="true"] {
-  border-color: var(--accent);
-  color: var(--accent-hi);
-  background: var(--ink-2);
-}
-
-.rag-toggle[aria-checked="true"]::before {
-  content: "●";
-  color: var(--accent);
-}
-
-.rag-toggles {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: var(--sp-4);
-}
-
-.rag-toggle-row {
-  display: grid;
-  gap: var(--sp-2);
-  justify-items: start;
 }
 
 .rag-form .form-status {
@@ -93,7 +57,7 @@
   color: var(--accent);
 }
 
-/* ---- results ---- */
+/* ---- result: answer first ---- */
 .rag-result {
   margin: var(--sp-8) 0 0;
   padding: var(--sp-8);
@@ -102,8 +66,49 @@
   border-radius: var(--r-0);
 }
 
-.rag-result[hidden] {
+.rag-result[hidden],
+.rag-result [hidden] {
   display: none;
+}
+
+.rag-answer-text {
+  font-size: var(--text-lg);
+  line-height: 1.6;
+  color: var(--text-0);
+  max-width: none;
+}
+
+.rag-result .tag-row {
+  margin-top: var(--sp-4);
+}
+
+.rag-unavailable {
+  margin-bottom: var(--sp-4);
+}
+
+/* ---- disclosure: how it got there ---- */
+.rag-detail {
+  margin-top: var(--sp-6);
+  border-top: 1px solid var(--line-0);
+}
+
+.rag-detail summary {
+  list-style: none;
+  padding: var(--sp-4) 0;
+  color: var(--accent);
+  cursor: pointer;
+}
+
+.rag-detail summary::-webkit-details-marker {
+  display: none;
+}
+
+.rag-detail summary::after {
+  content: " ▸";
+}
+
+.rag-detail[open] summary::after {
+  content: " ▾";
 }
 
 .rag-meta {
@@ -120,10 +125,14 @@
   color: var(--accent-hi);
 }
 
+.rag-list-label {
+  margin-top: var(--sp-6);
+}
+
 .rag-list {
   list-style: none;
   counter-reset: rag;
-  margin: var(--sp-6) 0 0;
+  margin: var(--sp-2) 0 0;
   padding: 0;
 }
 
@@ -153,20 +162,22 @@
   color: var(--text-0);
 }
 
-.rag-answer {
+.rag-force {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-2);
   margin-top: var(--sp-6);
-  padding-top: var(--sp-6);
+  padding-top: var(--sp-4);
   border-top: 1px solid var(--line-0);
+  color: var(--text-1);
+  cursor: pointer;
 }
 
-.rag-answer[hidden],
-.rag-abstained[hidden] {
-  display: none;
-}
-
-.rag-answer p {
-  color: var(--text-0);
-  max-width: none;
+.rag-force input {
+  accent-color: var(--accent);
+  width: 1rem;
+  height: 1rem;
+  margin: 0;
 }
 
 .rag-result figcaption {
@@ -178,10 +189,6 @@
   .rag-ask {
     flex-direction: column;
     align-items: stretch;
-  }
-
-  .rag-toggles {
-    grid-template-columns: 1fr;
   }
 
   .rag-list li {

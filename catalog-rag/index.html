@@ -98,33 +98,32 @@
             <button type="button" class="rag-chip mono" data-q="the class on lenses, mirrors and prisms">the class on lenses, mirrors and prisms</button>
           </div>
 
-          <div class="rag-toggles">
-            <div class="rag-toggle-row">
-              <button type="button" class="rag-toggle mono" id="rag-generate" role="switch" aria-checked="false">GENERATE ANSWER</button>
-              <span class="rag-caption mono dim">USES A LIMITED DAILY BUDGET; RETRIEVAL IS ALWAYS ON</span>
-            </div>
-            <div class="rag-toggle-row">
-              <button type="button" class="rag-toggle mono" id="rag-prereq" role="switch" aria-checked="false">TREAT AS PREREQ QUESTION</button>
-              <span class="rag-caption mono dim">OVERRIDES THE RULE-BASED ROUTER</span>
-            </div>
-          </div>
-
           <p class="form-status mono" id="rag-status" role="status" aria-live="polite"></p>
         </form>
 
         <figure class="rag-result" id="rag-result" hidden>
-          <div class="rag-meta">
-            <span class="rag-badge mono" id="rag-route"></span>
-            <span class="mono dim" id="rag-retriever"></span>
-          </div>
-          <ol class="rag-list" id="rag-list" aria-label="Retrieved courses"></ol>
-          <div class="rag-answer" id="rag-answer" hidden>
-            <p id="rag-answer-text"></p>
-            <ul class="tag-row mono" id="rag-cited" aria-label="Cited courses"></ul>
-          </div>
-          <p class="project-note mono" id="rag-abstained" hidden>
-            THE MODEL ABSTAINED: THE RETRIEVED RECORDS DID NOT ANSWER THE QUESTION.
+          <!-- Answer slot: the answer (or the abstention), else the retrieved list with a note. -->
+          <p class="rag-answer-text" id="rag-answer-text" aria-live="polite"></p>
+          <ul class="tag-row mono" id="rag-cited" aria-label="Cited courses" hidden></ul>
+          <p class="rag-unavailable mono dim" id="rag-unavailable" hidden>
+            ANSWER UNAVAILABLE RIGHT NOW · SHOWING RETRIEVED COURSES
           </p>
+          <ol class="rag-list" id="rag-fallback" aria-label="Retrieved courses" hidden></ol>
+
+          <details class="rag-detail" id="rag-detail">
+            <summary class="mono">HOW IT GOT THERE</summary>
+            <div class="rag-meta">
+              <span class="rag-badge mono" id="rag-route"></span>
+              <span class="mono dim" id="rag-retriever"></span>
+            </div>
+            <p class="rag-list-label mono dim" id="rag-list-label"></p>
+            <ol class="rag-list" id="rag-list" aria-label="Retrieved courses"></ol>
+            <label class="rag-force mono">
+              <input type="checkbox" id="rag-force" />
+              Force prerequisite route (overrides the router)
+            </label>
+          </details>
+
           <figcaption class="mono">FIG 6.1 · ROUTE AND RETRIEVED RECORDS, LIVE</figcaption>
         </figure>
 
