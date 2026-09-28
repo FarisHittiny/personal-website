@@ -347,6 +347,13 @@ figure figcaption {
   font-size: var(--text-sm);
 }
 
+/* Two project links side by side (Work card and the demo page). */
+.project-links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--sp-6);
+}
+
 /* ============ Stats ============ */
 .stat-row {
   display: grid;

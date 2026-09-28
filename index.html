@@ -57,6 +57,7 @@
         <li><a href="#about">About</a></li>
         <li><a href="#experience">Experience</a></li>
         <li><a href="#work">Work</a></li>
+        <li><a href="/catalog-rag/">Catalog RAG</a></li>
         <li><a href="#leadership">Leadership</a></li>
         <li><a href="#interests">Off the Clock</a></li>
         <li><a href="#contact">Contact</a></li>
@@ -234,6 +235,45 @@
           <a class="project-link" href="https://github.com/FarisHittiny/riscv-accel" rel="noopener">
             github.com/FarisHittiny/riscv-accel →
           </a>
+        </article>
+
+        <!-- Catalog RAG: eval-driven retrieval over the TAMU course catalog -->
+        <article class="project reveal" aria-labelledby="catalog-rag-title">
+          <div class="project-head">
+            <h3 id="catalog-rag-title">Catalog RAG</h3>
+            <p class="project-sub">
+              Eval-driven retrieval over the Texas A&amp;M course catalog: BM25, embeddings, and a
+              prerequisite graph behind a query router, every change measured against a
+              hand-verified gold set before it was kept.
+            </p>
+            <ul class="tag-row mono" aria-label="Technologies">
+              <li>PYTHON</li><li>BM25</li><li>BGE EMBEDDINGS</li><li>NETWORKX</li><li>FASTAPI</li><li>CLOUD RUN</li>
+            </ul>
+          </div>
+          <div class="stat-row" role="group" aria-label="Key results">
+            <div class="stat">
+              <span class="stat-num">0.61 → 0.90</span>
+              <span class="stat-label mono">RECALL@5 VS BM25 BASELINE</span>
+            </div>
+            <div class="stat">
+              <span class="stat-num">0.51 → 0.79</span>
+              <span class="stat-label mono">ANSWER CORRECTNESS (LLM JUDGE, 90% HUMAN AGREEMENT)</span>
+            </div>
+            <div class="stat">
+              <span class="stat-num">129</span>
+              <span class="stat-label mono">QUESTIONS · HAND-VERIFIED · HELD-OUT VALIDATED</span>
+            </div>
+          </div>
+          <p class="project-note mono">
+            MEASURED ON 148 ECEN/CSCE COURSES. DENSE ROUTE DESIGNED POST-HOC, THEN VALIDATED ON A
+            14-QUESTION HELD-OUT SET. NUMBERS WILL DROP AS THE CORPUS GROWS.
+          </p>
+          <div class="project-links">
+            <a class="project-link" href="/catalog-rag/">TRY IT →</a>
+            <a class="project-link" href="https://github.com/FarisHittiny/catalog-rag" rel="noopener">
+              github.com/FarisHittiny/catalog-rag →
+            </a>
+          </div>
         </article>
 
         <!-- Research: cattle eartag detection -->

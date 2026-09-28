@@ -24,7 +24,8 @@ const caps = detectCapabilities();
 mountHero(document.getElementById("hero-canvas"), caps);
 
 // Scrollspy: highlight the nav link of the section in view.
-const navLinks = [...document.querySelectorAll<HTMLAnchorElement>(".nav-links a")];
+// Only in-page (#hash) links take part; /catalog-rag/ is its own page.
+const navLinks = [...document.querySelectorAll<HTMLAnchorElement>(".nav-links a")].filter((a) => a.hash);
 const sections = navLinks
   .map((a) => document.querySelector<HTMLElement>(a.hash))
   .filter((s): s is HTMLElement => s !== null);

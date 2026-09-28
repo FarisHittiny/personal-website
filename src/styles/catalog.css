@@ -1,0 +1,194 @@
+/* ============ Catalog RAG demo page ============
+   Built only from tokens.css values; the card, field, button, tag-row and
+   project-note styles come from components.css unchanged. */
+
+.rag-intro {
+  color: var(--text-1);
+  max-width: 62ch;
+  margin-bottom: var(--sp-8);
+}
+
+.rag-form {
+  display: grid;
+  gap: var(--sp-6);
+}
+
+.rag-ask {
+  display: flex;
+  align-items: end;
+  gap: var(--sp-3);
+}
+
+.rag-ask .field {
+  flex: 1;
+  min-width: 0;
+}
+
+.rag-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--sp-2);
+}
+
+/* Chips and switches share the small-control look of the diagram toolbar. */
+.rag-chip,
+.rag-toggle {
+  padding: var(--sp-1) var(--sp-3);
+  background: none;
+  border: 1px solid var(--line-1);
+  border-radius: var(--r-0);
+  color: var(--text-1);
+  text-align: left;
+  cursor: pointer;
+  transition: border-color 160ms var(--ease-out), color 160ms var(--ease-out),
+    background 160ms var(--ease-out);
+}
+
+.rag-chip {
+  text-transform: none; /* example questions read as typed */
+  letter-spacing: 0.02em;
+}
+
+.rag-chip:hover,
+.rag-toggle:hover {
+  border-color: var(--accent);
+  color: var(--accent-hi);
+}
+
+.rag-toggle::before {
+  content: "○";
+  display: inline-block;
+  width: 1.2em;
+  color: var(--text-2);
+}
+
+.rag-toggle[aria-checked="true"] {
+  border-color: var(--accent);
+  color: var(--accent-hi);
+  background: var(--ink-2);
+}
+
+.rag-toggle[aria-checked="true"]::before {
+  content: "●";
+  color: var(--accent);
+}
+
+.rag-toggles {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--sp-4);
+}
+
+.rag-toggle-row {
+  display: grid;
+  gap: var(--sp-2);
+  justify-items: start;
+}
+
+.rag-form .form-status {
+  margin: 0;
+}
+
+.rag-form .form-status.is-wait {
+  color: var(--accent);
+}
+
+/* ---- results ---- */
+.rag-result {
+  margin: var(--sp-8) 0 0;
+  padding: var(--sp-8);
+  background: var(--ink-1);
+  border: 1px solid var(--accent-dim);
+  border-radius: var(--r-0);
+}
+
+.rag-result[hidden] {
+  display: none;
+}
+
+.rag-meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--sp-3);
+}
+
+.rag-badge {
+  padding: var(--sp-1) var(--sp-3);
+  border: 1px solid var(--accent);
+  border-radius: var(--r-0);
+  color: var(--accent-hi);
+}
+
+.rag-list {
+  list-style: none;
+  counter-reset: rag;
+  margin: var(--sp-6) 0 0;
+  padding: 0;
+}
+
+.rag-list li {
+  counter-increment: rag;
+  display: grid;
+  grid-template-columns: 2.5rem 7rem minmax(0, 1fr);
+  align-items: baseline;
+  gap: var(--sp-3);
+  padding: var(--sp-2) 0;
+  border-top: 1px solid var(--line-0);
+}
+
+.rag-list li::before {
+  content: counter(rag, decimal-leading-zero);
+  font-family: var(--font-mono);
+  font-size: var(--text-xs);
+  letter-spacing: 0.08em;
+  color: var(--text-2);
+}
+
+.rag-list .rag-id {
+  color: var(--accent);
+}
+
+.rag-list .rag-title {
+  color: var(--text-0);
+}
+
+.rag-answer {
+  margin-top: var(--sp-6);
+  padding-top: var(--sp-6);
+  border-top: 1px solid var(--line-0);
+}
+
+.rag-answer[hidden],
+.rag-abstained[hidden] {
+  display: none;
+}
+
+.rag-answer p {
+  color: var(--text-0);
+  max-width: none;
+}
+
+.rag-result figcaption {
+  margin-top: var(--sp-6);
+  color: var(--text-2);
+}
+
+@media (max-width: 48rem) {
+  .rag-ask {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .rag-toggles {
+    grid-template-columns: 1fr;
+  }
+
+  .rag-list li {
+    grid-template-columns: 2rem minmax(0, 1fr);
+  }
+
+  .rag-list .rag-title {
+    grid-column: 2;
+  }
+}

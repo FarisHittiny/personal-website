@@ -42,6 +42,18 @@ Deploys are automatic: push to `main` and Cloudflare Pages builds and publishes.
 
 Pull requests get their own preview deployment at a `*.pages.dev` URL.
 
+### Catalog RAG demo
+
+`/catalog-rag/` calls the catalog-rag API on Cloud Run cross-origin
+(`https://catalog-rag-931113045677.us-south1.run.app`, source at
+[FarisHittiny/catalog-rag](https://github.com/FarisHittiny/catalog-rag)). The API's
+`DEMO_ORIGINS` allow-list is exact strings, no wildcards, so it must contain every origin the
+page is served from: `https://farishittiny.com`, `http://localhost:5173` for `npm run dev`,
+`http://localhost:4173` for `npm run preview`, and any `*.pages.dev` preview URL you want to
+test from. The page needs no configuration in production. To test against a local copy of the
+API instead, build with `VITE_RAG_API=http://localhost:7860 npm run build` (the API side then
+needs `DEMO_ORIGINS=http://localhost:4173`).
+
 ## Contact form
 
 Posts to Formspree (free tier: 50 submissions/month). Set `FORMSPREE_ID` in

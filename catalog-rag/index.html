@@ -1,0 +1,153 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="Live demo of Catalog RAG: eval-driven retrieval over the Texas A&M ECEN/CSCE course catalog. See the route the system takes, the records it retrieves, and the cited answer." />
+  <meta property="og:title" content="Catalog RAG · Faris Hittiny" />
+  <meta property="og:description" content="Ask the Texas A&M ECEN/CSCE catalog. BM25, embeddings and a prerequisite graph behind a query router, measured against a hand-verified gold set." />
+  <meta property="og:type" content="website" />
+  <meta property="og:image" content="https://farishittiny.com/og-image.png" />
+  <meta property="og:url" content="https://farishittiny.com/catalog-rag/" />
+  <meta name="twitter:card" content="summary_large_image" />
+  <link rel="canonical" href="https://farishittiny.com/catalog-rag/" />
+  <title>Catalog RAG · Faris Hittiny</title>
+  <meta name="theme-color" content="#f2eee3" />
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+  <link rel="icon" href="/favicon-32.png" sizes="32x32" type="image/png" />
+  <link rel="icon" href="/favicon-16.png" sizes="16x16" type="image/png" />
+  <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+  <link rel="shortcut icon" href="/favicon.ico" sizes="any" />
+  <link rel="preload" href="/fonts/fraunces-latin-wght-normal.woff2" as="font" type="font/woff2" crossorigin />
+  <link rel="preload" href="/fonts/ibm-plex-mono-latin-400-normal.woff2" as="font" type="font/woff2" crossorigin />
+  <style>
+    /* Self-hosted fonts. Declared here (not in bundled CSS) so the URLs stay
+       root-relative — the site is served from the domain root. */
+    @font-face {
+      font-family: "Fraunces";
+      src: url("/fonts/fraunces-latin-wght-normal.woff2") format("woff2-variations");
+      font-weight: 100 900;
+      font-style: normal;
+      font-display: swap;
+    }
+    @font-face {
+      font-family: "IBM Plex Mono";
+      src: url("/fonts/ibm-plex-mono-latin-400-normal.woff2") format("woff2");
+      font-weight: 400;
+      font-style: normal;
+      font-display: swap;
+    }
+    @font-face {
+      font-family: "IBM Plex Mono";
+      src: url("/fonts/ibm-plex-mono-latin-500-normal.woff2") format("woff2");
+      font-weight: 500;
+      font-style: normal;
+      font-display: swap;
+    }
+  </style>
+  <script type="module" src="/src/catalog-rag.ts"></script>
+</head>
+<body>
+  <a class="skip-link" href="#demo">Skip to content</a>
+
+  <header class="site-header">
+    <nav class="site-nav container" aria-label="Primary">
+      <a class="brand mono" href="/">FH<span class="brand-accent">·</span>2027</a>
+      <ul class="nav-links">
+        <li><a href="/#about">About</a></li>
+        <li><a href="/#experience">Experience</a></li>
+        <li><a href="/#work">Work</a></li>
+        <li><a href="/catalog-rag/" class="active" aria-current="page">Catalog RAG</a></li>
+        <li><a href="/#leadership">Leadership</a></li>
+        <li><a href="/#interests">Off the Clock</a></li>
+        <li><a href="/#contact">Contact</a></li>
+      </ul>
+    </nav>
+  </header>
+
+  <main id="top">
+    <!-- ============ CATALOG RAG DEMO ============ -->
+    <section class="section section-last" id="demo" aria-labelledby="demo-title">
+      <div class="container">
+        <header class="section-head reveal">
+          <span class="reg mono">0x018 · APPLICATION NOTE</span>
+          <h2 id="demo-title">Catalog RAG, live</h2>
+        </header>
+
+        <p class="rag-intro reveal">
+          Ask about an ECEN or CSCE course. The page shows the route the system took (the
+          prerequisite graph or text retrieval), the catalog records that came back, and, with
+          generation on, the answer with the records it cites. Every number behind this demo is in
+          the <a href="https://github.com/FarisHittiny/catalog-rag/blob/main/reports/eval_report.md" rel="noopener">eval report</a>.
+        </p>
+
+        <form class="project rag-form reveal" id="rag-form" novalidate>
+          <div class="rag-ask">
+            <div class="field">
+              <label for="rag-q" class="mono">QUESTION</label>
+              <input id="rag-q" name="question" type="text" maxlength="300" required
+                     autocomplete="off" spellcheck="false"
+                     placeholder="what do I need before ECEN 350" />
+            </div>
+            <button class="btn btn-solid" type="submit">ASK</button>
+          </div>
+
+          <div class="rag-chips" role="group" aria-label="Example questions">
+            <button type="button" class="rag-chip mono" data-q="what do I need before ECEN 350">what do I need before ECEN 350</button>
+            <button type="button" class="rag-chip mono" data-q="what does ECEN 350 unlock">what does ECEN 350 unlock</button>
+            <button type="button" class="rag-chip mono" data-q="the class on lenses, mirrors and prisms">the class on lenses, mirrors and prisms</button>
+          </div>
+
+          <div class="rag-toggles">
+            <div class="rag-toggle-row">
+              <button type="button" class="rag-toggle mono" id="rag-generate" role="switch" aria-checked="false">GENERATE ANSWER</button>
+              <span class="rag-caption mono dim">USES A LIMITED DAILY BUDGET; RETRIEVAL IS ALWAYS ON</span>
+            </div>
+            <div class="rag-toggle-row">
+              <button type="button" class="rag-toggle mono" id="rag-prereq" role="switch" aria-checked="false">TREAT AS PREREQ QUESTION</button>
+              <span class="rag-caption mono dim">OVERRIDES THE RULE-BASED ROUTER</span>
+            </div>
+          </div>
+
+          <p class="form-status mono" id="rag-status" role="status" aria-live="polite"></p>
+        </form>
+
+        <figure class="rag-result" id="rag-result" hidden>
+          <div class="rag-meta">
+            <span class="rag-badge mono" id="rag-route"></span>
+            <span class="mono dim" id="rag-retriever"></span>
+          </div>
+          <ol class="rag-list" id="rag-list" aria-label="Retrieved courses"></ol>
+          <div class="rag-answer" id="rag-answer" hidden>
+            <p id="rag-answer-text"></p>
+            <ul class="tag-row mono" id="rag-cited" aria-label="Cited courses"></ul>
+          </div>
+          <p class="project-note mono" id="rag-abstained" hidden>
+            THE MODEL ABSTAINED: THE RETRIEVED RECORDS DID NOT ANSWER THE QUESTION.
+          </p>
+          <figcaption class="mono">FIG 6.1 · ROUTE AND RETRIEVED RECORDS, LIVE</figcaption>
+        </figure>
+
+        <p class="project-note mono reveal">
+          RETRIEVAL RUNS OVER 148 ECEN/CSCE COURSES FROM THE 2026–27 CATALOG ON A CLOUD RUN
+          INSTANCE THAT SLEEPS WHEN IDLE. THE FIRST REQUEST OF THE DAY CAN TAKE ~20 S.
+        </p>
+        <div class="project-links reveal">
+          <a class="project-link" href="/#work">← BACK TO WORK</a>
+          <a class="project-link" href="https://github.com/FarisHittiny/catalog-rag" rel="noopener">
+            github.com/FarisHittiny/catalog-rag →
+          </a>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <div class="container footer-inner mono">
+      <span>REV 2.1 · 2026-08</span>
+      <span>BUILT WITH VITE + THREE.JS · NO TRACKERS</span>
+      <span>© <span id="year">2026</span> FARIS HITTINY</span>
+    </div>
+  </footer>
+</body>
+</html>
