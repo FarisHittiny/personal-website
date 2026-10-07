@@ -100,7 +100,7 @@
         <div class="about-grid">
           <div class="about-text reveal">
             <p class="lede">
-              I'm a computer engineering junior at Texas A&amp;M University, graduating May 2027.
+              I'm a computer engineering senior at Texas A&amp;M University, graduating May 2027.
               I work at the boundary where hardware meets software: the layer where a design
               decision shows up as real cycles, real watts, real latency.
             </p>
@@ -149,14 +149,16 @@
             <div class="xp-cols">
               <div class="xp-prose">
                 <p>
-                  Two tracks, both production-facing. On the first, I own feature work on an
-                  internal telecom expense platform, an ASP.NET system that ingests and reconciles
-                  carrier invoices for the company's device fleet. I've shipped batch-processing
-                  pipelines with real progress reporting, invoice parsing across carrier formats,
-                  and Azure OpenAI-backed features, each verified against live data before release.
+                  Two tracks, both production-facing. The main one was AI invoice extraction on
+                  Azure OpenAI: pulling line items out of AT&amp;T, Verizon, and T-Mobile bills for
+                  500+ corporate lines, with anonymized datasets and validation pipelines that
+                  measured 99.8% extraction accuracy against 8+ years of production billing data.
+                  Around it, I shipped feature work on the internal telecom expense platform
+                  (ASP.NET, C#, SQL Server), including a bulk employee-status refresh I cut from
+                  6.5 to 3.3 minutes by tuning API concurrency.
                 </p>
                 <p>
-                  On the second, I build agents on Salesforce Agentforce: designing agent actions,
+                  On the second, I built agents on Salesforce Agentforce: designing agent actions,
                   grounding them in org data, and testing the failure modes that separate a demo
                   from something a business unit can actually rely on.
                 </p>
@@ -165,8 +167,8 @@
                   award. The certificate is larger than my head.
                 </p>
                 <ul class="tag-row mono" aria-label="Technologies">
-                  <li>ASP.NET / C#</li>
                   <li>AZURE OPENAI</li>
+                  <li>ASP.NET / C#</li>
                   <li>SQL SERVER</li>
                   <li>SALESFORCE AGENTFORCE</li>
                 </ul>
