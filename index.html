@@ -66,7 +66,7 @@
         <p class="role">AI/ML Engineer</p>
         <p class="line">I build AI systems, then measure whether they work.</p>
         <nav class="spy" aria-label="Sections">
-          <a href="#numbers" class="on">Numbers</a>
+          <a href="#numbers" class="on" aria-current="true">Numbers</a>
           <a href="#about">About</a>
           <a href="#experience">Experience</a>
           <a href="#projects">Projects</a>
@@ -95,17 +95,172 @@
         <p class="how" id="numbers-how" aria-live="polite"><b>How it was measured.</b> Measured by validation pipelines on anonymized datasets, against 8+ years of production billing data.</p>
       </section>
 
-      <section id="about"><h2 class="label">About</h2><!-- T2 --></section>
+      <section id="about">
+        <h2 class="label">About</h2>
+        <div class="about">
+          <picture class="portrait">
+            <source srcset="/img/portrait-960.avif" type="image/avif" />
+            <source srcset="/img/portrait-960.webp" type="image/webp" />
+            <img src="/img/portrait-960.jpg" alt="Portrait of Faris Hittiny" width="960" height="1200" loading="lazy" decoding="async" />
+          </picture>
+          <!-- TODO: Faris to confirm wording -->
+          <div class="prose">
+            <p>I'm a computer engineering senior at <strong>Texas A&amp;M</strong>, graduating May 2027. I spent summer 2026 as an AI/ML engineering intern at <strong>Aramco</strong>, where I modernized an internal telecom expense platform and added AI invoice extraction to it.</p>
+            <p>Before that I did computer vision research on ear-tag detection in field video. I also built a course catalog RAG system with its own eval harness. I like figuring things out where there's no playbook, then putting a number on the result.</p>
+            <p>Off the clock it's pickleball, pickup soccer, and any live match I can get to.</p>
+          </div>
+        </div>
+        <dl class="skills">
+          <div><dt>Languages</dt><dd>Python, C, C++, C#, JavaScript, SQL, Bash, Verilog, MATLAB</dd></div>
+          <div><dt>LLMs &amp; retrieval</dt><dd>RAG, LLM evaluation, LLM-as-judge, BM25, sentence-transformers, Azure OpenAI, OpenAI API</dd></div>
+          <div><dt>Machine learning</dt><dd>PyTorch, YOLOv8, Detectron2, OpenCV, scikit-learn, NumPy, networkx</dd></div>
+          <div><dt>Software &amp; cloud</dt><dd>.NET, FastAPI, React, PostgreSQL, SQL Server, Git, Linux, Docker, GitHub Actions, AWS, Copilot Studio</dd></div>
+        </dl>
+      </section>
 
-      <section id="experience"><h2 class="label">Experience</h2><!-- T2 --></section>
+      <section id="experience">
+        <h2 class="label">Experience</h2>
+        <div class="group">
+          <article class="entry" id="x-aramco">
+            <span class="when">May to Aug 2026</span>
+            <div class="body">
+              <h3>AI/ML Engineering Intern · Aramco</h3>
+              <span class="sub">Digital &amp; Information Technology, Houston</span>
+              <p>Modernized Cellbill Manager, an internal telecom expense platform (C#, .NET, Entity Framework Core, SQL Server), and added AI invoice extraction on Azure OpenAI for AT&amp;T, Verizon and T-Mobile bills covering 500+ active corporate lines. Validation pipelines on anonymized datasets measured 99.8% extraction accuracy against 8+ years of production billing data. Halved a bulk employee-status refresh (6.5 to 3.3 minutes) by benchmarking HR API concurrency and capping parallel lookups at 12. Co-captained a 6-person capstone on an AI interview scheduling agent (Copilot Studio, SAP SuccessFactors), presented to the executive board; it won the Excellence in Teamwork Award. Also prototyped agents on Salesforce Agentforce.</p>
+              <ul class="tags"><li>Azure OpenAI</li><li>C#</li><li>.NET</li><li>Entity Framework Core</li><li>SQL Server</li><li>Copilot Studio</li><li>Salesforce Agentforce</li></ul>
+              <picture class="shot">
+                <source srcset="/img/awards-960.avif" type="image/avif" />
+                <source srcset="/img/awards-960.webp" type="image/webp" />
+                <img src="/img/awards-960.jpg" alt="Faris and three fellow interns holding Certificates of Appreciation in front of an Aramco backdrop" width="960" height="720" loading="lazy" decoding="async" />
+              </picture>
+            </div>
+          </article>
+          <article class="entry" id="x-research">
+            <span class="when">May to Dec 2025</span>
+            <div class="body">
+              <h3>AI/ML Undergraduate Research Assistant · Texas A&amp;M</h3>
+              <span class="sub">Disease Management in Animal Systems</span>
+              <p>Benchmarked 10+ deep learning models for ear-tag detection in continuous field video; the best reached 89.6% mAP@0.5. Labeled 10,000+ images, automated preprocessing on Slurm, and led an 11-person team presenting at the 2025 Undergraduate Research Expo.</p>
+              <ul class="tags"><li>PyTorch</li><li>YOLOv8</li><li>Detectron2</li><li>OpenCV</li><li>Slurm</li></ul>
+              <picture class="shot">
+                <source srcset="/img/eartag-960.avif" type="image/avif" />
+                <source srcset="/img/eartag-960.webp" type="image/webp" />
+                <img src="/img/eartag-960.jpg" alt="Presenting eartag-detection research at the 2025 Undergraduate Research Expo" width="960" height="720" loading="lazy" decoding="async" />
+              </picture>
+            </div>
+          </article>
+        </div>
+      </section>
 
-      <section id="projects"><h2 class="label">Projects</h2><!-- T2 --></section>
+      <section id="projects">
+        <h2 class="label">Projects</h2>
+        <div class="group">
+          <article class="entry" id="x-rag">
+            <div class="thumb" aria-hidden="true">0.90</div>
+            <div class="body">
+              <h3>Course Catalog RAG with Eval Harness</h3>
+              <p>Question answering over 148 Texas A&amp;M ECEN and CSCE courses. Prerequisite questions go to a graph, everything else to dense retrieval, scored on 129 hand-verified questions in CI.</p>
+              <span class="stat">Recall@5 0.61 → 0.90 · answer correctness 51% → 79%</span>
+              <ul class="tags"><li>Python</li><li>BM25</li><li>bge-small</li><li>networkx</li><li>FastAPI</li></ul>
+              <p class="more"><a href="/catalog-rag/">Try the live demo <span class="arrow" aria-hidden="true">→</span></a><a href="https://github.com/FarisHittiny/catalog-rag">Code on GitHub <span class="arrow" aria-hidden="true">↗</span></a></p>
+            </div>
+          </article>
+          <article class="entry" id="x-pos">
+            <div class="thumb" aria-hidden="true">POS</div>
+            <div class="body">
+              <h3>Boba Shop Point-of-Sale System</h3>
+              <p>A full-stack POS built in a 6-person Agile team for CSCE 331. I owned the customer React frontend, OAuth login, and a Gemini chatbot.</p>
+              <ul class="tags"><li>React</li><li>Node.js</li><li>Express</li><li>PostgreSQL</li><li>OAuth</li></ul>
+            </div>
+          </article>
+          <article class="entry" id="x-demand">
+            <div class="thumb" aria-hidden="true">Top 10</div>
+            <div class="body">
+              <h3>AI-Driven Demand Mapping</h3>
+              <p>A Python and AWS pipeline that analyzed 50,000+ sales records to recommend Amazon warehouse locations. Built at the Tidal Hackathon in October 2024.</p>
+              <span class="stat">Top 10 of 200+ teams</span>
+              <ul class="tags"><li>Python</li><li>AWS</li></ul>
+            </div>
+          </article>
+          <!-- TODO: Faris to confirm. The RISC-V project is not in the résumé; its wording comes from the brief, the prototype and the old site. -->
+          <article class="entry" id="x-riscv">
+            <div class="thumb" aria-hidden="true">15.1×</div>
+            <div class="body">
+              <h3><a href="https://github.com/FarisHittiny/riscv-accel">RISC-V Hardware Accelerator <span class="arrow" aria-hidden="true">↗</span></a></h3>
+              <p>A popcount accelerator in a LiteX/VexRiscv SoC with a Zephyr driver. 15.1× fewer cycles than the software baseline on a 4 KB workload, in Verilator simulation, not silicon.</p>
+              <ul class="tags"><li>Verilog</li><li>LiteX/VexRiscv</li><li>Zephyr RTOS</li><li>Verilator</li></ul>
+            </div>
+          </article>
+        </div>
+      </section>
 
-      <section id="wins"><h2 class="label">Wins and leadership</h2><!-- T2 --></section>
+      <section id="wins">
+        <h2 class="label">Wins and leadership</h2>
+        <ul class="rows">
+          <li id="w-teamwork"><strong>Excellence in Teamwork Award</strong><span class="yr">2026</span><span class="d">Aramco, for a 6-person capstone presented to the executive board.</span></li>
+          <li id="w-tidal"><strong>Top 10 of 200+ teams</strong><span class="yr">2024</span><span class="d">Tidal Hackathon.</span></li>
+          <li id="w-expo"><strong>Undergraduate Research Expo</strong><span class="yr">2025</span><span class="d">Led an 11-person team presentation at Texas A&amp;M.</span></li>
+          <li id="w-asa"><strong>Membership and Fundraising Chair</strong><span class="yr">2026 to now</span><span class="d">Arab Student Association, 500+ members.</span></li>
+          <li id="w-aaaea"><strong>Technical Outreach</strong><span class="yr">2026 to now</span><span class="d">Arab American Association of Engineers and Architects.</span></li>
+          <li id="w-vfs"><strong>External Relations</strong><span class="yr">2026 to now</span><span class="d">Vertical Flight Society.</span></li>
+        </ul>
+      </section>
 
-      <section id="off-the-clock"><h2 class="label">Off the clock</h2><!-- T2 --></section>
+      <section id="off-the-clock">
+        <h2 class="label">Off the clock</h2>
+        <ul class="rows hobbies">
+          <li><strong>Pickleball</strong><span class="d">Always up for a game. Dinks are a legitimate strategy and I will not be argued out of this.</span></li>
+          <li><strong>Pickup soccer</strong><span class="d">I play, and I'm usually the one wrangling the group chat into an actual match.</span></li>
+          <li><strong>Live matches</strong><span class="d">If there's a game on somewhere nearby, odds are decent I'm in the stands. Highlights: Jordan's first-ever World Cup in Dallas, and meeting Roberto Carlos next to the actual trophy.</span></li>
+        </ul>
+        <div class="trio">
+          <picture>
+            <source srcset="/img/roberto-960.avif" type="image/avif" />
+            <source srcset="/img/roberto-960.webp" type="image/webp" />
+            <img src="/img/roberto-960.jpg" alt="Faris giving a thumbs-up next to Roberto Carlos and the FIFA World Cup trophy" width="960" height="720" loading="lazy" decoding="async" />
+          </picture>
+          <picture>
+            <source srcset="/img/jordan-960.avif" type="image/avif" />
+            <source srcset="/img/jordan-960.webp" type="image/webp" />
+            <img src="/img/jordan-960.jpg" alt="Faris and friends in Jordan kits holding a We Are Jordan flag in a packed stadium" width="960" height="720" loading="lazy" decoding="async" />
+          </picture>
+          <picture>
+            <source srcset="/img/flagday-960.avif" type="image/avif" />
+            <source srcset="/img/flagday-960.webp" type="image/webp" />
+            <img src="/img/flagday-960.jpg" alt="Aramco interns in national-team soccer jerseys at flag day, Faris in a Jordan kit" width="960" height="720" loading="lazy" decoding="async" />
+          </picture>
+        </div>
+      </section>
 
-      <section id="contact" class="contact"><h2 class="label">Contact</h2><!-- T2 --></section>
+      <section id="contact" class="contact">
+        <h2 class="label">Contact</h2>
+        <p class="contact-lead">Hiring new grads for 2027? <em>Let's talk.</em></p>
+        <a class="mail" href="mailto:faris@farishittiny.com">faris@farishittiny.com</a>
+        <form class="contact-form" id="contact-form" method="POST" novalidate>
+          <div class="field">
+            <label for="cf-name">Name</label>
+            <input id="cf-name" name="name" type="text" autocomplete="name" required />
+          </div>
+          <div class="field">
+            <label for="cf-email">Email</label>
+            <input id="cf-email" name="email" type="email" autocomplete="email" required />
+          </div>
+          <div class="field field-wide">
+            <label for="cf-msg">Message</label>
+            <textarea id="cf-msg" name="message" rows="5" required></textarea>
+          </div>
+          <!-- honeypot: hidden from humans, bots fill it -->
+          <div class="hp" aria-hidden="true">
+            <label for="cf-company">Company</label>
+            <input id="cf-company" name="_gotcha" type="text" tabindex="-1" autocomplete="off" />
+          </div>
+          <div class="form-foot">
+            <button class="btn" type="submit">Send message</button>
+            <p class="form-status" id="form-status" role="status"></p>
+          </div>
+        </form>
+        <p class="fine">© <span id="year">2026</span> Faris Hittiny</p>
+      </section>
     </main>
   </div>
 </body>

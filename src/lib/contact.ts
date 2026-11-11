@@ -20,7 +20,7 @@ export function initContact(): void {
   const setBusy = (busy: boolean) => {
     button.disabled = busy;
     button.setAttribute("aria-busy", String(busy));
-    button.textContent = busy ? "SENDING…" : idleLabel;
+    button.textContent = busy ? "Sending…" : idleLabel;
     // Honeypot input stays enabled so bots can always fill it.
     for (const f of fields) {
       if (f.name !== "_gotcha") f.disabled = busy;
@@ -36,8 +36,8 @@ export function initContact(): void {
     const data = new FormData(form);
 
     setBusy(true);
-    status.className = "form-status mono";
-    status.textContent = "SENDING…";
+    status.className = "form-status is-wait";
+    status.textContent = "Sending…";
 
     try {
       const res = await fetch(form.action, {
@@ -46,12 +46,12 @@ export function initContact(): void {
         headers: { Accept: "application/json" },
       });
       if (!res.ok) throw new Error(String(res.status));
-      status.className = "form-status mono is-ok";
-      status.textContent = "SENT. I'LL GET BACK TO YOU SOON.";
+      status.className = "form-status is-ok";
+      status.textContent = "Sent. I'll get back to you soon.";
       form.reset();
     } catch {
-      status.className = "form-status mono is-error";
-      status.textContent = "SEND FAILED. EMAIL ME AT FARIS@FARISHITTINY.COM INSTEAD.";
+      status.className = "form-status is-error";
+      status.textContent = "Send failed. Email me at faris@farishittiny.com instead.";
     } finally {
       setBusy(false);
     }

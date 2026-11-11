@@ -1,4 +1,5 @@
-/* The record. T1 holds only the numbers block; T2 adds the rest. */
+/* The record: two-column shell, sidebar, numbers block, sections, entries,
+   rows, contact. */
 
 /* Numbers block: particle stage, tabs and the "how" line */
 .stage {
@@ -96,8 +97,499 @@
   font-weight: 600;
 }
 
+/* ============ Two-column shell ============ */
+.shell {
+  position: relative;
+  z-index: 1;
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 0 var(--gutter);
+  display: grid;
+  grid-template-columns: minmax(0, 0.8fr) minmax(0, 1.25fr);
+  gap: clamp(24px, 6vw, 96px);
+}
+
+/* The skip link focuses #record; the jump itself is the cue, not an outline. */
+.shell:focus {
+  outline: none;
+}
+
+.side {
+  position: sticky;
+  top: 0;
+  height: 100vh;
+  max-height: 100vh;
+  padding: clamp(48px, 9vh, 96px) 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: 28px;
+}
+
+.side-name {
+  font-size: clamp(36px, 4.2vw, 56px);
+  font-weight: 700;
+  letter-spacing: -0.05em;
+  line-height: 1;
+}
+
+.side .role {
+  margin-top: 12px;
+  font-size: 20px;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+}
+
+.side .line {
+  margin-top: 12px;
+  max-width: 19em;
+  color: var(--mute);
+}
+
+.spy {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin-top: clamp(28px, 6vh, 64px);
+}
+
+.spy a {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 8px 0;
+  text-decoration: none;
+  font-size: 12.5px;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--mute);
+  transition: color 0.2s;
+}
+
+.spy a::before {
+  content: "";
+  width: 28px;
+  height: 1px;
+  background: currentColor;
+  transition: width 0.25s;
+}
+
+.spy a:hover,
+.spy a.on {
+  color: var(--ink);
+}
+
+.spy a:hover::before,
+.spy a.on::before {
+  width: 60px;
+}
+
+.links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 18px;
+  font-size: 14.5px;
+}
+
+.links a {
+  padding: 6px 0 2px;
+  color: var(--soft);
+  text-decoration: none;
+  border-bottom: 1px solid var(--line);
+  transition: color 0.2s, border-color 0.2s;
+}
+
+.links a:hover {
+  color: var(--accent);
+  border-color: var(--accent);
+}
+
+.main {
+  padding: clamp(48px, 9vh, 96px) 0 96px;
+  display: flex;
+  flex-direction: column;
+  gap: clamp(64px, 10vh, 112px);
+  min-width: 0;
+}
+
+.main section {
+  scroll-margin-top: 48px;
+  min-width: 0;
+}
+
+/* ============ About ============ */
+.about {
+  display: grid;
+  grid-template-columns: clamp(160px, 16vw, 220px) minmax(0, 1fr);
+  gap: clamp(20px, 3vw, 32px);
+  align-items: start;
+}
+
+.portrait img {
+  width: 100%;
+  aspect-ratio: 4 / 5;
+  object-fit: cover;
+  border-radius: var(--r-m);
+  border: 1px solid var(--line);
+  background: var(--panel);
+}
+
+.prose {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  max-width: 38em;
+  color: var(--soft);
+}
+
+.prose strong {
+  color: var(--ink);
+  font-weight: 600;
+}
+
+.skills {
+  margin: 28px 0 0;
+}
+
+.skills div {
+  display: grid;
+  grid-template-columns: 10.5em minmax(0, 1fr);
+  gap: 2px 18px;
+  padding: 10px 0;
+  border-top: 1px solid var(--line);
+}
+
+.skills div:last-child {
+  border-bottom: 1px solid var(--line);
+}
+
+.skills dt {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--ink);
+}
+
+.skills dd {
+  margin: 0;
+  font-size: 14.5px;
+  color: var(--soft);
+}
+
+/* ============ Entries ============ */
+.group {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin: 0 -18px;
+}
+
+.entry {
+  scroll-margin-top: 96px;
+  display: grid;
+  grid-template-columns: 8.2em minmax(0, 1fr);
+  gap: 6px 18px;
+  padding: 18px;
+  border-radius: var(--r-m);
+  border: 1px solid transparent;
+  transition: opacity 0.25s, background 0.25s, border-color 0.25s;
+}
+
+.group:hover .entry:not(:hover) {
+  opacity: 0.45;
+}
+
+.entry:hover {
+  background: var(--hover);
+  border-color: var(--line);
+}
+
+.entry .when {
+  padding-top: 4px;
+  font-size: 12.5px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--mute);
+}
+
+.entry h3 {
+  font-size: 18px;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+}
+
+.entry h3 a {
+  text-decoration: none;
+}
+
+.entry:hover h3,
+.entry:hover h3 a {
+  color: var(--accent);
+}
+
+.entry .sub {
+  font-size: 15px;
+  color: var(--mute);
+}
+
+.entry .body {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  min-width: 0;
+}
+
+.entry p {
+  font-size: 15.5px;
+  color: var(--soft);
+}
+
+.thumb {
+  align-self: start;
+  aspect-ratio: 16 / 10;
+  display: grid;
+  place-items: center;
+  overflow: hidden;
+  border-radius: var(--r-s);
+  border: 1px solid var(--line);
+  background: var(--panel);
+  font-size: 24px;
+  font-weight: 700;
+  letter-spacing: -0.04em;
+  color: var(--accent);
+}
+
+/* Small photo inside an entry: supporting, never a hero. */
+.shot {
+  margin-top: 6px;
+  width: min(100%, 240px);
+}
+
+.shot img {
+  width: 100%;
+  aspect-ratio: 4 / 3;
+  object-fit: cover;
+  border-radius: var(--r-s);
+  border: 1px solid var(--line);
+  background: var(--panel);
+}
+
+.stat {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--ink);
+}
+
+.arrow {
+  display: inline-block;
+  transition: transform 0.2s;
+}
+
+.entry:hover h3 .arrow {
+  transform: translate(3px, -3px);
+}
+
+.entry .more {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 22px;
+  margin-top: 2px;
+}
+
+.more a {
+  padding: 6px 0 2px;
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--ink);
+  text-decoration: none;
+  border-bottom: 1px solid var(--line);
+  transition: color 0.2s, border-color 0.2s;
+}
+
+.more a:hover {
+  color: var(--accent);
+  border-color: var(--accent);
+}
+
+.more a:hover .arrow {
+  transform: translateX(3px);
+}
+
+/* ============ Rows: wins and off the clock ============ */
+.rows {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.rows li {
+  scroll-margin-top: 96px;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 2px 18px;
+  padding: 14px 0;
+  border-top: 1px solid var(--line);
+}
+
+.rows li:last-child {
+  border-bottom: 1px solid var(--line);
+}
+
+.rows strong {
+  font-weight: 600;
+}
+
+.rows .yr {
+  font-size: 14px;
+  color: var(--mute);
+  font-variant-numeric: tabular-nums;
+}
+
+.rows .d {
+  grid-column: 1 / -1;
+  font-size: 14.5px;
+  color: var(--mute);
+}
+
+.hobbies .d {
+  color: var(--soft);
+}
+
+.trio {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+  margin-top: 20px;
+}
+
+.trio img {
+  width: 100%;
+  aspect-ratio: 4 / 3;
+  object-fit: cover;
+  border-radius: var(--r-s);
+  border: 1px solid var(--line);
+  background: var(--panel);
+}
+
+/* ============ Contact ============ */
+.contact-lead {
+  font-size: clamp(34px, 4.6vw, 60px);
+  font-weight: 700;
+  letter-spacing: -0.05em;
+  line-height: 1;
+}
+
+.contact-lead em {
+  font-style: normal;
+  color: var(--accent);
+}
+
+.contact .mail {
+  display: inline-block;
+  margin-top: 18px;
+  font-size: 20px;
+  text-underline-offset: 4px;
+  transition: color 0.2s;
+}
+
+.contact .mail:hover {
+  color: var(--accent);
+}
+
+.contact-form {
+  position: relative;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+  max-width: 40em;
+  margin-top: 36px;
+}
+
+.contact-form .field-wide,
+.contact-form .form-foot {
+  grid-column: 1 / -1;
+}
+
+.form-foot {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px 18px;
+}
+
+.fine {
+  margin-top: 56px;
+  font-size: 13px;
+  color: var(--mute);
+}
+
+/* ============ Flash after a jump (src/lib/flash.ts) ============ */
+.entry.flash,
+.rows li.flash {
+  animation: flash 1.6s ease-out;
+}
+
+@keyframes flash {
+  0%,
+  40% {
+    background: var(--flash);
+  }
+
+  100% {
+    background: transparent;
+  }
+}
+
+/* ============ Breakpoints ============ */
 @media (max-width: 900px) {
   .tabs {
     grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .shell {
+    grid-template-columns: 1fr;
+    gap: 0;
+  }
+
+  .side {
+    position: static;
+    height: auto;
+    max-height: none;
+    padding-bottom: 8px;
+  }
+
+  .spy {
+    display: none;
+  }
+
+  .entry {
+    grid-template-columns: 1fr;
+  }
+
+  .thumb {
+    max-width: 180px;
+  }
+}
+
+@media (max-width: 600px) {
+  .about {
+    grid-template-columns: 1fr;
+  }
+
+  .portrait {
+    width: min(200px, 60%);
+  }
+
+  .skills div {
+    grid-template-columns: 1fr;
+  }
+
+  .trio {
+    grid-template-columns: 1fr;
+  }
+
+  .contact-form {
+    grid-template-columns: 1fr;
   }
 }

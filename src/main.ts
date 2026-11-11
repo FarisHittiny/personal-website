@@ -127,6 +127,46 @@ if (stage && "IntersectionObserver" in window) {
 }
 document.addEventListener("visibilitychange", syncLoop);
 
+/* ============ Pointer glow ============
+   base.css draws the glow at --mx/--my. Off under reduced motion. */
+if (!reduce) {
+  window.addEventListener(
+    "pointermove",
+    (e) => {
+      root.style.setProperty("--mx", `${e.clientX}px`);
+      root.style.setProperty("--my", `${e.clientY}px`);
+    },
+    { passive: true },
+  );
+}
+
+/* ============ Scroll spy ============
+   A section is "current" while it crosses a thin band 35–45% down the
+   viewport. The active link gets .on and aria-current. */
+const spyLinks = [...document.querySelectorAll<HTMLAnchorElement>(".spy a")];
+const spyMap = new Map(spyLinks.map((a) => [(a.getAttribute("href") ?? "").slice(1), a]));
+
+function setSpy(id: string): void {
+  const active = spyMap.get(id);
+  if (!active) return;
+  for (const a of spyLinks) {
+    const on = a === active;
+    a.classList.toggle("on", on);
+    if (on) a.setAttribute("aria-current", "true");
+    else a.removeAttribute("aria-current");
+  }
+}
+
+if (spyLinks.length && "IntersectionObserver" in window) {
+  const spy = new IntersectionObserver(
+    (entries) => {
+      for (const entry of entries) if (entry.isIntersecting) setSpy(entry.target.id);
+    },
+    { rootMargin: "-35% 0px -55% 0px" },
+  );
+  document.querySelectorAll<HTMLElement>("#record main section[id]").forEach((s) => spy.observe(s));
+}
+
 /* ============ Floor, contact, year ============ */
 mountFloor();
 initContact();
