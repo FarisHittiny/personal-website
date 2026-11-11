@@ -530,6 +530,15 @@
   animation: flash 1.6s ease-out;
 }
 
+/* A colour fade is not motion, so keep the highlight under reduced motion
+   (base.css cuts every animation to 0.01ms there). */
+@media (prefers-reduced-motion: reduce) {
+  .entry.flash,
+  .rows li.flash {
+    animation-duration: 1.6s !important;
+  }
+}
+
 @keyframes flash {
   0%,
   40% {

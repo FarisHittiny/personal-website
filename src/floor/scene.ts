@@ -195,7 +195,7 @@ export function startScene(opts: SceneOptions): FloorScene {
     tex.colorSpace = SRGBColorSpace;
     tex.anisotropy = 4;
     const spr = new Sprite(new SpriteMaterial({ map: tex, transparent: true, depthWrite: false }));
-    spr.scale.set(5.2, 2.6, 1);
+    spr.scale.set(4.4, 2.2, 1); // smaller than the prototype's 5.2: topic-large labels are wider
     spr.position.y = 3.3;
     g.add(spr);
     scene.add(g);

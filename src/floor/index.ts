@@ -33,6 +33,15 @@ export function mountFloor(): void {
   let live = false;
   let shown = -1;
   let fillToken = 0;
+  // Announce the card only when the visitor moved the ball. The character
+  // passes it onto a pad every 10-20 s on his own; those stay silent.
+  let lastUserInput = Number.NEGATIVE_INFINITY;
+  const markInput = (): void => {
+    lastUserInput = performance.now();
+  };
+  host.addEventListener("click", markInput);
+  host.addEventListener("focusin", markInput); // pad links, incl. screen-reader focus
+  window.addEventListener("keydown", markInput);
 
   /* ============ Card (port of the prototype's show(i)) ============ */
 
@@ -79,6 +88,7 @@ export function mountFloor(): void {
     }
     const wasOpen = shown >= 0;
     shown = i;
+    card.setAttribute("aria-live", performance.now() - lastUserInput < 6000 ? "polite" : "off");
     hint?.classList.add("off");
     card.classList.add("on");
     if (wasOpen) {
