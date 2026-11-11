@@ -12,6 +12,7 @@ import {
   Group,
   Mesh,
   MeshBasicMaterial,
+  MeshLambertMaterial,
   MeshStandardMaterial,
   SphereGeometry,
   type BufferGeometry,
@@ -35,6 +36,7 @@ export interface Character {
 }
 
 const SKIN = 0xc98f6a, HAIR = 0x17130f, KIT = 0x6c8cff, SHORTS = 0x161a26, SOCK = 0xf2f3f5, BOOT = 0x0d0e12;
+const DARK = new Set([HAIR, SHORTS, BOOT]);
 const BLADE = 0xf2c230, PICKLEBALL = 0xe9f25a, PICKLEBALL_GLOW = 0x8f9a10;
 /* r169: emissive intensity ≈ old^2.2 (plan section 2), so the prototype's 0.6 becomes 0.33. */
 const PICKLEBALL_EMISSIVE = 0.33;
@@ -50,7 +52,12 @@ export function createStandInCharacter(): Character {
   const materials: Material[] = [];
   const geo = <G extends BufferGeometry>(g: G): G => { geometries.push(g); return g; };
   const own = <M extends Material>(m: M): M => { materials.push(m); return m; };
-  const mat = (c: number, r = 0.7): MeshStandardMaterial => own(new MeshStandardMaterial({ color: c, roughness: r }));
+  /* Dark parts (hair, shorts, boots) are Lambert: under the r169 lights a
+   * Standard material's specular term greyed them out next to the prototype,
+   * the same reason the ground is Lambert (scene.ts header). */
+  const mat = (c: number, r = 0.7): Material => own(DARK.has(c)
+    ? new MeshLambertMaterial({ color: c })
+    : new MeshStandardMaterial({ color: c, roughness: r }));
 
   const root = new Group();
   const body = new Group();
