@@ -1,9 +1,14 @@
-/** Capability gate for the WebGL hero. Anything short of a confident "yes"
- *  gets the static fallback — no blank hero, ever. */
+/** Capability gate for the 3D floor. Anything short of a confident "yes"
+ *  keeps the static tiles, so the opening screen is never blank.
+ *
+ *  - `floor3d`: the device can run the floor (WebGL2, not low-end, not forced off).
+ *  - `motionOk`: the visitor has not asked for reduced motion.
+ *  - `forced`: `?force-fallback` is in the URL (testing switch). */
 
 export interface Capabilities {
-  webglHero: boolean;
+  floor3d: boolean;
   motionOk: boolean;
+  forced: boolean;
 }
 
 declare global {
@@ -12,23 +17,26 @@ declare global {
   }
 }
 
-export function detectCapabilities(): Capabilities {
-  const motionOk = window.matchMedia("(prefers-reduced-motion: no-preference)").matches;
-
-  if (new URLSearchParams(location.search).has("force-fallback")) {
-    return { webglHero: false, motionOk };
-  }
-  if (!motionOk) return { webglHero: false, motionOk };
-  if ((navigator.deviceMemory ?? 4) <= 2) return { webglHero: false, motionOk };
-  if ((navigator.hardwareConcurrency ?? 4) <= 2) return { webglHero: false, motionOk };
-
+function hasWebGL2(): boolean {
   try {
     const canvas = document.createElement("canvas");
-    const gl = canvas.getContext("webgl2") ?? canvas.getContext("webgl");
-    if (!gl) return { webglHero: false, motionOk };
+    const gl = canvas.getContext("webgl2");
+    if (!gl) return false;
+    // Hand the probe context back so it does not count against the page's limit.
+    gl.getExtension("WEBGL_lose_context")?.loseContext();
+    return true;
   } catch {
-    return { webglHero: false, motionOk };
+    return false;
   }
+}
 
-  return { webglHero: true, motionOk };
+export function detectCapabilities(): Capabilities {
+  const motionOk = !window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  const forced = new URLSearchParams(location.search).has("force-fallback");
+
+  const lowEnd =
+    (navigator.deviceMemory ?? 4) <= 2 || (navigator.hardwareConcurrency ?? 4) <= 2;
+
+  const floor3d = !forced && !lowEnd && hasWebGL2();
+  return { floor3d, motionOk, forced };
 }
