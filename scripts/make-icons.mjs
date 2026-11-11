@@ -10,11 +10,12 @@ const root = path.dirname(path.dirname(fileURLToPath(import.meta.url)));
 const pub = path.join(root, "public");
 const svg = await readFile(path.join(pub, "favicon.svg"));
 
-// --ink-0, read from the tokens file so the icons cannot drift from the theme
+// --stage (the page background), read from the tokens file so the icons
+// cannot drift from the theme
 const tokens = await readFile(path.join(root, "src", "styles", "tokens.css"), "utf8");
-const inkMatch = tokens.match(/--ink-0:\s*(#[0-9a-fA-F]{3,8})/);
-if (!inkMatch) throw new Error("could not read --ink-0 from tokens.css");
-const INK_0 = inkMatch[1];
+const stageMatch = tokens.match(/--stage:\s*(#[0-9a-fA-F]{3,8})/);
+if (!stageMatch) throw new Error("could not read --stage from tokens.css");
+const STAGE = stageMatch[1];
 
 // density is set high so the 32-unit viewBox rasterizes cleanly at every size
 const render = (size, background) => {
@@ -27,8 +28,8 @@ const PNGS = [
   [16, "favicon-16.png", null],
   [32, "favicon-32.png", null],
   // iOS composites apple-touch-icon over black, so this one is flattened onto
-  // the page cream rather than left transparent like the tab icons.
-  [180, "apple-touch-icon.png", INK_0],
+  // the dark page stage rather than left transparent like the tab icons.
+  [180, "apple-touch-icon.png", STAGE],
 ];
 for (const [size, name, background] of PNGS) {
   await writeFile(path.join(pub, name), await render(size, background));

@@ -59,5 +59,5 @@ for (const slot of SLOTS) {
   console.log(`optimized: ${slot.name} <- ${path.basename(src)}`);
 }
 if (missing) {
-  console.log(`\n${missing} slot(s) still on placeholders. Run scripts/make-placeholders.mjs to regenerate those if needed.`);
+  console.log(`\n${missing} slot(s) had no source in assets-src/ and kept the images already in public/img/.`);
 }

@@ -18,7 +18,7 @@ if (year) year.textContent = String(new Date().getFullYear());
 const API_BASE = import.meta.env.VITE_RAG_API || "https://catalog-rag-931113045677.us-south1.run.app";
 const WAKE_NOTE_AFTER_MS = 3000;
 const REQUEST_TIMEOUT_MS = 60_000;
-const ABSTAINED = "The catalog doesn't cover that (or the model wasn't sure). Retrieved courses are under HOW IT GOT THERE.";
+const ABSTAINED = "The catalog doesn't cover that (or the model wasn't sure). Retrieved courses are under “How it got there”.";
 
 interface Retrieved {
   course_id: string;
@@ -67,7 +67,7 @@ if (form && input && status && result && answerText && cited && unavailable && f
   const setBusy = (busy: boolean) => {
     button.disabled = busy;
     button.setAttribute("aria-busy", String(busy));
-    button.textContent = busy ? "ASKING…" : idleLabel;
+    button.textContent = busy ? "Asking…" : idleLabel;
     input.disabled = busy;
     force.disabled = busy;
   };
@@ -91,19 +91,19 @@ if (form && input && status && result && answerText && cited && unavailable && f
       li.append(id, title);
       ol.append(li);
     }
-    if (rows.length === 0) ol.append(tag("NO RECORDS RETRIEVED"));
+    if (rows.length === 0) ol.append(tag("No records retrieved"));
   };
 
   const renderDetail = (data: AskResponse) => {
-    routeEl.textContent = `ROUTE · ${data.route}`;
-    retrieverEl.textContent = `RETRIEVER · ${data.retriever_used}${data.cached ? " · CACHED ANSWER" : ""}`;
+    routeEl.textContent = `Route · ${data.route}`;
+    retrieverEl.textContent = `Retriever · ${data.retriever_used}${data.cached ? " · cached answer" : ""}`;
     if (data.retriever_used === "graph") {
       // For a prereq-routed question the API prepends the asked course(s) to the context.
       const got = new Set(data.retrieved.map((r) => r.course_id));
       const asked = data.context_course_ids.filter((c) => !got.has(c));
-      listLabel.textContent = `COURSES THAT REQUIRE ${asked.join(" / ") || "THE ASKED COURSE"}`;
+      listLabel.textContent = `Courses that require ${asked.join(" / ") || "the asked course"}`;
     } else {
-      listLabel.textContent = "TOP MATCHES";
+      listLabel.textContent = "Top matches";
     }
     fillList(list, data.retrieved);
   };
@@ -130,15 +130,15 @@ if (form && input && status && result && answerText && cited && unavailable && f
   };
 
   const messageFor = async (res: Response): Promise<string> => {
-    if (res.status === 429) return "RATE LIMIT REACHED, TRY LATER";
-    if (res.status === 502 || res.status === 503) return "GENERATION OFFLINE, RETRIEVAL STILL WORKS";
+    if (res.status === 429) return "Rate limit reached, try later";
+    if (res.status === 502 || res.status === 503) return "Generation offline, retrieval still works";
     try {
       const body = (await res.json()) as { detail?: unknown };
-      if (typeof body.detail === "string") return body.detail.toUpperCase();
+      if (typeof body.detail === "string") return body.detail;
     } catch {
       /* non-JSON body: fall through to the status code */
     }
-    return `REQUEST FAILED (HTTP ${res.status})`;
+    return `Request failed (HTTP ${res.status})`;
   };
 
   const post = (payload: Record<string, unknown>, signal: AbortSignal) =>
@@ -156,9 +156,9 @@ if (form && input && status && result && answerText && cited && unavailable && f
     if (force.checked) payload.route_override = "prereq";
 
     setBusy(true);
-    setStatus("ASKING…");
+    setStatus("Asking…");
     const wakeNote = window.setTimeout(
-      () => setStatus("WAKING SERVER · ~20 S ON FIRST REQUEST", "is-wait"),
+      () => setStatus("Waking the server · about 20 s on the first request", "is-wait"),
       WAKE_NOTE_AFTER_MS,
     );
     const controller = new AbortController();
@@ -184,7 +184,7 @@ if (form && input && status && result && answerText && cited && unavailable && f
       setStatus(await messageFor(res), "is-error");
     } catch (err) {
       const aborted = err instanceof DOMException && err.name === "AbortError";
-      setStatus(aborted ? "THE SERVER DID NOT ANSWER IN 60 S, TRY AGAIN" : "COULD NOT REACH THE API", "is-error");
+      setStatus(aborted ? "The server did not answer in 60 s, try again" : "Could not reach the API", "is-error");
     } finally {
       window.clearTimeout(wakeNote);
       window.clearTimeout(deadline);

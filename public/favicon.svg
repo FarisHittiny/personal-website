@@ -1,10 +1,10 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32">
-  <!-- Rounded navy badge, FH in cream at the center. No background rect — the
-       tab's own color shows around the badge. Glyphs are rects, not <text>,
-       so they render identically regardless of the viewer's fonts.
-       Colors are accent / ink-1 from src/styles/tokens.css. -->
-  <rect x="1" y="1" width="30" height="30" rx="9" fill="#16386f"/>
-  <g fill="#faf8f1">
+  <!-- Rounded blue badge, FH in the stage colour at the center. No background
+       rect — the tab's own color shows around the badge. Glyphs are rects, not
+       <text>, so they render identically regardless of the viewer's fonts.
+       Colors are the accent and stage tokens from src/styles/tokens.css. -->
+  <rect x="1" y="1" width="30" height="30" rx="9" fill="#6C8CFF"/>
+  <g fill="#0B0C10">
     <rect x="10.2" y="9.6" width="2.25" height="13.2"/>
     <rect x="10.2" y="9.6" width="5.55" height="2.25"/>
     <rect x="10.2" y="15.08" width="4.44" height="2.25"/>
