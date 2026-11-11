@@ -1,18 +1,8 @@
 import "./styles/tokens.css";
 import "./styles/base.css";
-import "./styles/layout.css";
-import "./styles/components.css";
-import "./styles/motion.css";
 import "./styles/catalog.css";
 
-import { initReveals } from "./lib/reveal";
-import { initCursor } from "./lib/cursor";
-
-// Signal JS is alive — motion.css only hides .reveal elements under html.js.
 document.documentElement.classList.add("js");
-
-initReveals();
-initCursor();
 
 const year = document.getElementById("year");
 if (year) year.textContent = String(new Date().getFullYear());

@@ -6,3 +6,4 @@ _incoming/
 *.local
 Thumbs.db
 .DS_Store
+verify-out/

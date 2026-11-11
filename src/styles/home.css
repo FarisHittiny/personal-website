@@ -1,0 +1,103 @@
+/* The record. T1 holds only the numbers block; T2 adds the rest. */
+
+/* Numbers block: particle stage, tabs and the "how" line */
+.stage {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 1 / 0.5;
+}
+
+#numbers-canvas {
+  position: absolute;
+  left: 0;
+  top: -20%;
+  width: 100%;
+  height: 140%;
+  display: block;
+  cursor: crosshair;
+}
+
+.big {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  font-size: clamp(64px, 10vw, 150px);
+  font-weight: 700;
+  letter-spacing: -0.06em;
+  line-height: 1;
+  color: var(--accent);
+}
+
+.has-gl .big {
+  display: none;
+}
+
+.tabs {
+  position: relative;
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  border-top: 1px solid var(--line);
+}
+
+.tabs button {
+  text-align: left;
+  background: none;
+  border: 0;
+  border-top: 2px solid transparent;
+  margin-top: -1px;
+  padding: 12px 10px 10px 0;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-height: 62px;
+  transition: border-color 0.25s;
+}
+
+.tabs b {
+  font-size: 21px;
+  font-weight: 700;
+  letter-spacing: -0.04em;
+  line-height: 1.1;
+  font-variant-numeric: tabular-nums;
+  transition: color 0.25s;
+}
+
+.tabs span {
+  font-size: 12.5px;
+  color: var(--mute);
+}
+
+.tabs button:hover b,
+.tabs button[aria-pressed="true"] b {
+  color: var(--accent);
+}
+
+.tabs button[aria-pressed="true"] {
+  border-top-color: var(--accent);
+}
+
+.how {
+  position: relative;
+  margin-top: 12px;
+  color: var(--soft);
+  min-height: 3.3em;
+  transition: opacity 0.2s, transform 0.2s;
+}
+
+.how.swap {
+  opacity: 0;
+  transform: translateY(6px);
+}
+
+.how b {
+  color: var(--accent);
+  font-weight: 600;
+}
+
+@media (max-width: 900px) {
+  .tabs {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
