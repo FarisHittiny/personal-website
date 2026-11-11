@@ -43,9 +43,10 @@ export function mountFloor(): void {
 
   function fillCard(i: number): void {
     const h = HEADLINES[i];
+    // Same order as the pads: topic first, the number under it (see floor.css).
     setText("card-kicker", h.card.kicker);
-    setText("card-number", h.number);
     setText("card-title", h.card.title);
+    setText("card-number", h.number);
     setText("card-desc", h.how);
     more?.setAttribute("href", `#${h.target}`);
 

@@ -43,18 +43,18 @@
     </div>
     <nav class="floor-pads" id="floor-pads" aria-label="Headline numbers">
       <ul>
-        <li><a href="#x-aramco" data-pad="0"><b data-num="aramco">99.8%</b><span data-label="aramco">Aramco</span></a></li>
-        <li><a href="#x-rag" data-pad="1"><b data-num="rag">0.90</b><span data-label="rag">Catalog RAG</span></a></li>
-        <li><a href="#x-research" data-pad="2"><b data-num="eartags">89.6%</b><span data-label="eartags">Ear tags</span></a></li>
-        <li><a href="#x-riscv" data-pad="3"><b data-num="riscv">15.1×</b><span data-label="riscv">RISC-V</span></a></li>
-        <li><a href="#wins" data-pad="4"><b data-num="wins">Top 10</b><span data-label="wins">Wins</span></a></li>
+        <li><a href="#x-aramco" data-pad="0"><span data-label="aramco">Aramco</span><b data-num="aramco">99.8%</b></a></li>
+        <li><a href="#x-rag" data-pad="1"><span data-label="rag">Catalog RAG</span><b data-num="rag">0.90</b></a></li>
+        <li><a href="#x-research" data-pad="2"><span data-label="eartags">Ear tags</span><b data-num="eartags">89.6%</b></a></li>
+        <li><a href="#x-riscv" data-pad="3"><span data-label="riscv">RISC-V</span><b data-num="riscv">15.1×</b></a></li>
+        <li><a href="#wins" data-pad="4"><span data-label="wins">Wins</span><b data-num="wins">Top 10</b></a></li>
       </ul>
     </nav>
     <button class="pill" id="floor-enable" type="button" hidden>Turn on the 3D floor</button>
     <p class="hint" id="floor-hint" hidden><b>Roll the ball onto a pad.</b> Arrow keys or WASD, or click where you want to go. Leave it alone and I'll come pass it around. Scroll down for everything.</p>
     <aside class="card" id="floor-card" aria-live="polite">
-      <span class="k" id="card-kicker"></span><div class="n" id="card-number"></div>
-      <p class="card-title" id="card-title"></p><p id="card-desc"></p>
+      <span class="k" id="card-kicker"></span><p class="card-title" id="card-title"></p>
+      <div class="n" id="card-number"></div><p id="card-desc"></p>
       <div class="cta"><a id="card-more" href="#record">Full details ↓</a><span id="card-links"></span></div>
     </aside>
   </section>

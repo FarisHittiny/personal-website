@@ -120,19 +120,23 @@
   transform: translateY(-2px);
 }
 
-.floor-pads b {
-  font-size: clamp(30px, 3.2vw, 44px);
+/* Same order as the 3D pad labels (scene.ts, LABEL_LARGE = "topic"): the
+   topic name large in the accent, the number smaller underneath. */
+.floor-pads span {
+  font-size: clamp(19px, 1.8vw, 26px);
   font-weight: 700;
-  letter-spacing: -0.05em;
-  line-height: 1;
+  letter-spacing: -0.04em;
+  line-height: 1.05;
   color: var(--accent);
-  white-space: nowrap;
 }
 
-.floor-pads span {
-  font-size: 14.5px;
-  font-weight: 600;
-  color: var(--soft);
+.floor-pads b {
+  font-size: 18px;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  line-height: 1.2;
+  color: var(--ink);
+  white-space: nowrap;
 }
 
 /* Reduced-motion opt-in, under the tiles. */
@@ -210,13 +214,15 @@
   backdrop-filter: blur(8px);
 }
 
-.floor--live .floor-pads:focus-within b {
+.floor--live .floor-pads:focus-within span {
   font-size: 16px;
   letter-spacing: -0.02em;
 }
 
-.floor--live .floor-pads:focus-within span {
+.floor--live .floor-pads:focus-within b {
   font-size: 13.5px;
+  font-weight: 600;
+  color: var(--soft);
 }
 
 /* ============ Hint ============ */
@@ -311,10 +317,13 @@
   letter-spacing: -0.06em;
   line-height: 0.95;
   color: var(--accent);
+  margin-top: 4px;
 }
 
+/* Order matches the pads: the topic (card title) leads as the heading, then
+   the number as the big accent figure, then how it was measured. */
 .card .card-title {
-  font-size: 21px;
+  font-size: 22px;
   font-weight: 700;
   letter-spacing: -0.03em;
   line-height: 1.15;
@@ -366,8 +375,12 @@
     padding: 16px 16px 14px;
   }
 
+  .floor-pads span {
+    font-size: 22px;
+  }
+
   .floor-pads b {
-    font-size: 30px;
+    font-size: 15.5px;
   }
 
   /* The card becomes a bottom sheet. */
