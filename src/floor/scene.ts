@@ -141,8 +141,7 @@ export function startScene(opts: SceneOptions): FloorScene {
   // Let a constructor error propagate: index.ts falls back to the static tiles.
   const renderer = new WebGLRenderer({ canvas, antialias: true });
   renderer.setPixelRatio(Math.min(2, window.devicePixelRatio || 1));
-  // Vertical drags on the canvas must still scroll the page on phones.
-  canvas.style.touchAction = "pan-y";
+  // touch-action: pan-y on the canvas (so phones can scroll past) is in floor.css.
 
   const scene = new Scene();
   scene.background = new Color(STAGE);
@@ -234,6 +233,9 @@ export function startScene(opts: SceneOptions): FloorScene {
   const character = createStandInCharacter();
   scene.add(character.root);
   const npc = createNpc(pads, clock);
+  let npcX = 0;  // his position after the previous frame's step
+  let npcZ = 0;
+  let npcSeen = false;
 
   /* ---- state ---- */
   const vel = new Vector3();
@@ -385,19 +387,26 @@ export function startScene(opts: SceneOptions): FloorScene {
       vel.z = (kz / kl) * 7;
       bvy = 4.6;
     }
+    // Keep the ball from rolling through him. Like the prototype's stepNpc
+    // (px, pz are read before he moves), this uses his position from the
+    // previous frame; the brain hands back the position after this step.
+    const px = npcSeen ? npcX : out.x;
+    const pz = npcSeen ? npcZ : out.z;
+    npcX = out.x;
+    npcZ = out.z;
+    npcSeen = true;
     character.root.position.x = out.x;
     character.root.position.z = out.z;
     character.root.rotation.y = out.facing;
     character.update(out.pose, clock, dt);
-    // Keep the ball from rolling through him.
-    const bx = ball.position.x - out.x;
-    const bz = ball.position.z - out.z;
+    const bx = ball.position.x - px;
+    const bz = ball.position.z - pz;
     const bd = Math.hypot(bx, bz);
     if (bd < R + 0.5 && by < 0.5 && out.pose.state !== "chase") {
       const nx = bd > 0.001 ? bx / bd : 1;
       const nz = bd > 0.001 ? bz / bd : 0;
-      ball.position.x = out.x + nx * (R + 0.5);
-      ball.position.z = out.z + nz * (R + 0.5);
+      ball.position.x = px + nx * (R + 0.5);
+      ball.position.z = pz + nz * (R + 0.5);
       const vn = vel.x * nx + vel.z * nz;
       if (vn < 0) { vel.x -= 1.5 * vn * nx; vel.z -= 1.5 * vn * nz; }
     }
