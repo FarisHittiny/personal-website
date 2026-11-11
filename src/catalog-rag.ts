@@ -60,7 +60,7 @@ if (form && input && status && result && answerText && cited && unavailable && f
   let lastQuestion = "";
 
   const setStatus = (text: string, kind: "" | "is-wait" | "is-error" = "") => {
-    status.className = `form-status mono ${kind}`.trim();
+    status.className = `form-status ${kind}`.trim();
     status.textContent = text;
   };
 
@@ -83,7 +83,7 @@ if (form && input && status && result && answerText && cited && unavailable && f
     for (const r of rows) {
       const li = document.createElement("li");
       const id = document.createElement("span");
-      id.className = "rag-id mono";
+      id.className = "rag-id";
       id.textContent = r.course_id;
       const title = document.createElement("span");
       title.className = "rag-title";
