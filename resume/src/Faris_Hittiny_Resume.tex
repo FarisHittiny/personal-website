@@ -2,28 +2,38 @@
 \usepackage{latexsym}
 \usepackage[empty]{fullpage}
 \usepackage{titlesec}
+\usepackage{marvosym}
 \usepackage[usenames,dvipsnames]{color}
+\usepackage{verbatim}
 \usepackage{enumitem}
 \usepackage[hidelinks]{hyperref}
 \usepackage{fancyhdr}
+\usepackage[english]{babel}
 \usepackage{tabularx}
 \usepackage{times}
 \input{glyphtounicode}
 
 \pagestyle{fancy}
 \fancyhf{}
+\fancyfoot{}
 \renewcommand{\headrulewidth}{0pt}
 \renewcommand{\footrulewidth}{0pt}
+
 \addtolength{\oddsidemargin}{-0.5in}
 \addtolength{\evensidemargin}{-0.5in}
 \addtolength{\textwidth}{1in}
 \addtolength{\topmargin}{-.5in}
 \addtolength{\textheight}{1.0in}
+
 \urlstyle{same}
 \raggedbottom
 \raggedright
 \setlength{\tabcolsep}{0in}
-\titleformat{\section}{\vspace{-4pt}\scshape\raggedright\large}{}{0em}{}[\color{black}\titlerule \vspace{-5pt}]
+
+\titleformat{\section}{
+  \vspace{-4pt}\scshape\raggedright\large
+}{}{0em}{}[\color{black}\titlerule \vspace{-5pt}]
+
 \pdfgentounicode=1
 
 \newcommand{\resumeItem}[1]{\item\small{{#1 \vspace{-2pt}}}}
@@ -46,11 +56,14 @@
 \newcommand{\resumeItemListStart}{\begin{itemize}}
 \newcommand{\resumeItemListEnd}{\end{itemize}\vspace{-5pt}}
 
+% Public web version: phone number removed (the page is public and gets scraped).
+% Use resume_base.tex (with phone) for job applications.
+
 \begin{document}
 
 \begin{center}
     \textbf{\Huge \scshape Faris Hittiny} \\ \vspace{1pt}
-    \small 832-330-0036 $|$ \href{mailto:faris@farishittiny.com}{\underline{faris@farishittiny.com}} $|$
+    \small \href{mailto:faris@farishittiny.com}{\underline{faris@farishittiny.com}} $|$
     \href{https://farishittiny.com}{\underline{farishittiny.com}} $|$
     \href{https://github.com/FarisHittiny}{\underline{github.com/FarisHittiny}} $|$
     \href{https://linkedin.com/in/farishittiny}{\underline{linkedin.com/in/farishittiny}}
@@ -60,7 +73,7 @@
   \resumeSubHeadingListStart
     \resumeSubheading
       {Texas A\&M University}{College Station, TX}
-      {Bachelor of Science in Computer Engineering, GPA: 3.64}{May 2027}
+      {Bachelor of Science in Computer Engineering, GPA: 3.64}{Expected May 2027}
   \resumeSubHeadingListEnd
 
 \section{Technical Skills}
@@ -77,7 +90,7 @@
   \resumeSubHeadingListStart
     \resumeSubheading
       {Aramco}{Houston, TX}
-      {AI/ML Engineering Intern, Digital \& Information Technology}{May 2026 -- Aug 2026}
+      {AI/ML Engineering Intern, Digital \& Information Technology}{May 2026 - Aug 2026}
       \resumeItemListStart
         \resumeItem{Engineered AI-powered invoice extraction on Azure OpenAI, with anonymized datasets and validation pipelines measuring 99.8\% extraction accuracy against 8+ years of production billing data.}
         \resumeItem{Streamlined carrier invoice processing (AT\&T, Verizon, T-Mobile) covering 500+ active corporate lines in Cellbill Manager (C\#, .NET, Entity Framework Core, SQL Server), eliminating manual reconciliation.}
@@ -88,7 +101,7 @@
 
     \resumeSubheading
       {Texas A\&M University}{College Station, TX}
-      {AI/ML Undergraduate Research Assistant, Disease Management in Animal Systems}{May 2025 -- Dec 2025}
+      {AI/ML Undergraduate Research Assistant, Disease Management in Animal Systems}{May 2025 - Dec 2025}
       \resumeItemListStart
         \resumeItem{Developed and benchmarked 10+ deep learning models (YOLOv8, Mask R-CNN, Detectron2) for ear-tag detection in continuous field video; best model reached 89.6\% mAP@0.5 at 89.5\% precision and 89.7\% recall.}
         \resumeItem{Labeled 10,000+ images from 4+ months of video and automated preprocessing on Slurm (HPC), cutting manual work 60\%+.}
@@ -106,7 +119,7 @@
             \resumeItem{Graded answers with an LLM judge at 90\% agreement on 30 human labels; confirmed the routing fix on a 14-question held-out set (recall@5 0.91) and served it through a rate-limited FastAPI service in Docker.}
           \resumeItemListEnd
       \resumeProjectHeading
-          {\textbf{Boba Shop Point-of-Sale System} $|$ \emph{React, Node.js, Express, PostgreSQL, OAuth -- CSCE 331}}{Jan 2026 -- May 2026}
+          {\textbf{Boba Shop Point-of-Sale System} $|$ \emph{React, Node.js, Express, PostgreSQL, OAuth -- CSCE 331}}{Jan 2026 - May 2026}
           \resumeItemListStart
             \resumeItem{Built a full-stack POS system in a 6-member Agile team; owned the customer React frontend, OAuth login, and a Gemini chatbot.}
           \resumeItemListEnd
@@ -119,15 +132,16 @@
 
 \section{Leadership \& Involvement}
   \resumeSubHeadingListStart
-    \resumeProjectHeading
-      {\textbf{Arab Student Association (ASA)} $|$ \emph{Membership and Fundraising Chair}}{Jul 2026 -- Present}
-      \resumeItemListStart
-        \resumeItem{Lead recruitment, retention, and fundraising (partnerships, merchandise, events) for a 500+ member organization.}
-      \resumeItemListEnd
-    \resumeProjectHeading
-      {\textbf{Arab American Association of Engineers and Architects (AAAEA)} $|$ \emph{Technical Outreach}}{Sep 2026 -- Present}
-    \resumeProjectHeading
-      {\textbf{Vertical Flight Society (VFS)} $|$ \emph{External Relations}}{Sep 2026 -- Present}
+      \resumeProjectHeading
+          {\textbf{Arab Student Association (ASA)} $|$ \emph{Membership and Fundraising Chair}}{Jul 2026 - Present}
+          \resumeItemListStart
+            \resumeItem{Lead recruitment, retention, and fundraising (partnerships, merchandise, events) for a 500+ member organization.}
+          \resumeItemListEnd
+      \resumeProjectHeading
+          {\textbf{Arab American Association of Engineers and Architects (AAAEA)} $|$ \emph{Technical Outreach}}{Sep 2026 - Present}
+      \vspace{4pt}
+      \resumeProjectHeading
+          {\textbf{Vertical Flight Society (VFS)} $|$ \emph{External Relations}}{Sep 2026 - Present}
   \resumeSubHeadingListEnd
 
 \end{document}

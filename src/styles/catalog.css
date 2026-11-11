@@ -1,22 +1,107 @@
-/* ============ Catalog RAG demo page ============
-   Built only from tokens.css values; the card, field, button, tag-row and
-   project-note styles come from components.css unchanged. */
+/* Catalog RAG demo page. Built only from tokens.css values on top of the
+   base.css primitives (.field, .btn, .tags, .label, .form-status, .skip-link).
+   catalog-rag.ts emits .form-status, .is-wait, .is-error, .rag-id, .rag-title. */
 
-.rag-intro {
-  color: var(--text-1);
-  max-width: 62ch;
-  margin-bottom: var(--sp-8);
+/* Top bar: name home, back to projects */
+.topbar {
+  position: relative;
+  z-index: 1;
+  border-bottom: 1px solid var(--line);
 }
 
+.topbar-inner {
+  max-width: 880px;
+  margin: 0 auto;
+  padding: 0 var(--gutter);
+  min-height: 64px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 18px;
+}
+
+.topbar a {
+  text-decoration: none;
+  transition: color 0.2s;
+}
+
+.topbar-name {
+  font-size: 17px;
+  font-weight: 700;
+  letter-spacing: -0.03em;
+}
+
+.topbar-back {
+  font-size: 14.5px;
+  font-weight: 600;
+  color: var(--soft);
+}
+
+.topbar a:hover {
+  color: var(--accent);
+}
+
+/* Page column */
+.page {
+  position: relative;
+  z-index: 1;
+  max-width: 880px;
+  margin: 0 auto;
+  padding: clamp(40px, 8vh, 88px) var(--gutter) 72px;
+  display: flex;
+  flex-direction: column;
+  gap: 28px;
+}
+
+.page:focus {
+  outline: none;
+}
+
+.page-head h1 {
+  font-size: clamp(36px, 5vw, 56px);
+  font-weight: 700;
+  letter-spacing: -0.05em;
+  line-height: 1;
+}
+
+.rag-intro {
+  margin-top: 20px;
+  max-width: 38em;
+  color: var(--soft);
+}
+
+.rag-intro a,
+.rag-links a {
+  color: var(--soft);
+  text-decoration: none;
+  border-bottom: 1px solid var(--line);
+  transition: color 0.2s, border-color 0.2s;
+}
+
+.rag-intro a {
+  color: var(--ink);
+}
+
+.rag-intro a:hover,
+.rag-links a:hover {
+  color: var(--accent);
+  border-color: var(--accent);
+}
+
+/* Ask form */
 .rag-form {
   display: grid;
-  gap: var(--sp-6);
+  gap: 18px;
+  padding: clamp(18px, 3vw, 28px);
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: var(--r-l);
 }
 
 .rag-ask {
   display: flex;
   align-items: end;
-  gap: var(--sp-3);
+  gap: 12px;
 }
 
 .rag-ask .field {
@@ -24,77 +109,87 @@
   min-width: 0;
 }
 
+.rag-ask .field input {
+  min-height: 44px;
+  background: var(--stage);
+}
+
 .rag-chips {
   display: flex;
   flex-wrap: wrap;
-  gap: var(--sp-2);
+  gap: 8px;
 }
 
-/* Chips share the small-control look of the diagram toolbar. */
 .rag-chip {
-  padding: var(--sp-1) var(--sp-3);
-  background: none;
-  border: 1px solid var(--line-1);
-  border-radius: var(--r-0);
-  color: var(--text-1);
+  min-height: 36px;
+  padding: 6px 14px;
+  border: 1px solid var(--line);
+  border-radius: var(--r-pill);
+  background: transparent;
+  color: var(--soft);
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 1.4;
   text-align: left;
-  text-transform: none; /* example questions read as typed */
-  letter-spacing: 0.02em;
   cursor: pointer;
-  transition: border-color 160ms var(--ease-out), color 160ms var(--ease-out);
+  transition: border-color 0.2s, color 0.2s, background 0.2s;
 }
 
 .rag-chip:hover {
   border-color: var(--accent);
-  color: var(--accent-hi);
+  background: var(--tint);
+  color: var(--ink);
 }
 
 .rag-form .form-status {
-  margin: 0;
+  min-height: 1.6em;
 }
 
-.rag-form .form-status.is-wait {
-  color: var(--accent);
-}
-
-/* ---- result: answer first ---- */
-.rag-result {
-  margin: var(--sp-8) 0 0;
-  padding: var(--sp-8);
-  background: var(--ink-1);
-  border: 1px solid var(--accent-dim);
-  border-radius: var(--r-0);
-}
-
-.rag-result[hidden],
-.rag-result [hidden] {
+.rag-form .form-status:empty {
   display: none;
 }
 
-.rag-answer-text {
-  font-size: var(--text-lg);
-  line-height: 1.6;
-  color: var(--text-0);
-  max-width: none;
+/* Result: answer first */
+.rag-result {
+  padding: clamp(18px, 3vw, 28px);
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-left: 2px solid var(--accent);
+  border-radius: var(--r-l);
 }
 
-.rag-result .tag-row {
-  margin-top: var(--sp-4);
+.rag-answer-text {
+  font-size: 18px;
+  line-height: 1.6;
+  color: var(--ink);
+}
+
+.rag-result .tags {
+  margin-top: 16px;
 }
 
 .rag-unavailable {
-  margin-bottom: var(--sp-4);
+  margin-bottom: 12px;
+  font-size: 14.5px;
+  font-weight: 600;
+  color: var(--mute);
 }
 
-/* ---- disclosure: how it got there ---- */
+/* Disclosure: how it got there */
 .rag-detail {
-  margin-top: var(--sp-6);
-  border-top: 1px solid var(--line-0);
+  margin-top: 22px;
+  border-top: 1px solid var(--line);
 }
 
 .rag-detail summary {
   list-style: none;
-  padding: var(--sp-4) 0;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 44px;
+  padding: 10px 0 6px;
+  font-size: 14.5px;
+  font-weight: 600;
   color: var(--accent);
   cursor: pointer;
 }
@@ -104,95 +199,151 @@
 }
 
 .rag-detail summary::after {
-  content: " ▸";
+  content: "";
+  width: 7px;
+  height: 7px;
+  margin-top: -3px;
+  border-right: 1.5px solid currentColor;
+  border-bottom: 1.5px solid currentColor;
+  transform: rotate(45deg);
+  transition: transform 0.2s;
 }
 
 .rag-detail[open] summary::after {
-  content: " ▾";
+  margin-top: 3px;
+  transform: rotate(-135deg);
 }
 
 .rag-meta {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
-  gap: var(--sp-3);
+  gap: 8px 14px;
+  margin-top: 8px;
 }
 
 .rag-badge {
-  padding: var(--sp-1) var(--sp-3);
-  border: 1px solid var(--accent);
-  border-radius: var(--r-0);
-  color: var(--accent-hi);
+  font-size: 12.5px;
+  font-weight: 600;
+  padding: 4px 12px;
+  border-radius: var(--r-pill);
+  background: var(--tint);
+  color: var(--tag);
+}
+
+.rag-retriever {
+  font-size: 14px;
+  color: var(--mute);
 }
 
 .rag-list-label {
-  margin-top: var(--sp-6);
+  margin-top: 20px;
+  font-size: 12.5px;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--mute);
 }
 
 .rag-list {
   list-style: none;
   counter-reset: rag;
-  margin: var(--sp-2) 0 0;
+  margin: 8px 0 0;
   padding: 0;
 }
 
 .rag-list li {
   counter-increment: rag;
   display: grid;
-  grid-template-columns: 2.5rem 7rem minmax(0, 1fr);
+  grid-template-columns: 2.2em 7.5em minmax(0, 1fr);
   align-items: baseline;
-  gap: var(--sp-3);
-  padding: var(--sp-2) 0;
-  border-top: 1px solid var(--line-0);
+  gap: 4px 14px;
+  padding: 10px 0;
+  border-top: 1px solid var(--line);
+  font-size: 15.5px;
 }
 
 .rag-list li::before {
   content: counter(rag, decimal-leading-zero);
-  font-family: var(--font-mono);
-  font-size: var(--text-xs);
-  letter-spacing: 0.08em;
-  color: var(--text-2);
+  font-size: 12.5px;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  color: var(--mute);
 }
 
 .rag-list .rag-id {
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  font-variant-numeric: tabular-nums;
   color: var(--accent);
 }
 
 .rag-list .rag-title {
-  color: var(--text-0);
+  color: var(--soft);
 }
 
 .rag-force {
   display: flex;
   align-items: center;
-  gap: var(--sp-2);
-  margin-top: var(--sp-6);
-  padding-top: var(--sp-4);
-  border-top: 1px solid var(--line-0);
-  color: var(--text-1);
+  gap: 10px;
+  min-height: 44px;
+  margin-top: 16px;
+  padding-top: 12px;
+  border-top: 1px solid var(--line);
+  font-size: 14.5px;
+  color: var(--soft);
   cursor: pointer;
 }
 
 .rag-force input {
   accent-color: var(--accent);
-  width: 1rem;
-  height: 1rem;
+  width: 18px;
+  height: 18px;
   margin: 0;
 }
 
-.rag-result figcaption {
-  margin-top: var(--sp-6);
-  color: var(--text-2);
+/* Note and links */
+.rag-note {
+  max-width: 38em;
+  font-size: 14.5px;
+  color: var(--mute);
 }
 
-@media (max-width: 48rem) {
+.rag-links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px 24px;
+  font-size: 14.5px;
+}
+
+.rag-links a {
+  padding: 6px 0 2px;
+  overflow-wrap: anywhere;
+}
+
+.page-foot {
+  position: relative;
+  z-index: 1;
+  max-width: 880px;
+  margin: 0 auto;
+  padding: 24px var(--gutter) 40px;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 8px 24px;
+  border-top: 1px solid var(--line);
+  font-size: 13px;
+  color: var(--mute);
+}
+
+@media (max-width: 600px) {
   .rag-ask {
     flex-direction: column;
     align-items: stretch;
   }
 
   .rag-list li {
-    grid-template-columns: 2rem minmax(0, 1fr);
+    grid-template-columns: 2.2em minmax(0, 1fr);
   }
 
   .rag-list .rag-title {

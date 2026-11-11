@@ -1,51 +1,98 @@
-// Generates the 1200x630 social-card image in the site's visual language.
-import sharp from "sharp";
+// Generates public/og-image.png, the 1200x630 social card, in the site's look.
+//   node scripts/make-og.mjs
+// Rendered with Playwright rather than sharp because sharp's SVG text cannot
+// use Manrope. The font is inlined as a data URL so the page needs no server.
+// Colours mirror src/styles/tokens.css; numbers mirror src/content.ts.
+import { chromium } from "playwright";
+import { readFile } from "node:fs/promises";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 
 const root = path.dirname(path.dirname(fileURLToPath(import.meta.url)));
+const font = await readFile(path.join(root, "public", "fonts", "manrope-latin-wght-normal.woff2"));
+const out = path.join(root, "public", "og-image.png");
 
-function latticeLines(seedFn, w, h, n, maxD) {
-  const pts = Array.from({ length: n }, () => [seedFn() * w, seedFn() * h]);
-  let out = "";
-  for (let i = 0; i < n; i++) {
-    for (let j = i + 1; j < n; j++) {
-      const dx = pts[i][0] - pts[j][0];
-      const dy = pts[i][1] - pts[j][1];
-      if (dx * dx + dy * dy < maxD * maxD) {
-        out += `<line x1="${pts[i][0]}" y1="${pts[i][1]}" x2="${pts[j][0]}" y2="${pts[j][1]}" stroke="#d6d0bf" stroke-opacity="0.55"/>`;
-      }
-    }
+const NUMBERS = [
+  ["99.8%", "Aramco invoice extraction accuracy"],
+  ["0.90", "Catalog RAG recall@5, from 0.61"],
+  ["89.6%", "Ear-tag detection mAP@0.5"],
+];
+
+const html = `<!doctype html>
+<html><head><meta charset="utf-8"><style>
+  @font-face {
+    font-family: "Manrope";
+    src: url(data:font/woff2;base64,${font.toString("base64")}) format("woff2-variations");
+    font-weight: 200 800;
   }
-  for (const [x, y] of pts) {
-    const gold = seedFn() < 0.2;
-    out += `<circle cx="${x}" cy="${y}" r="${gold ? 3 : 1.8}" fill="${gold ? "#16386f" : "#b5ae99"}"/>`;
+  * { box-sizing: border-box; margin: 0; }
+  html, body { width: 1200px; height: 630px; }
+  body {
+    background: #0B0C10;
+    color: #F2F3F5;
+    font-family: "Manrope", sans-serif;
+    -webkit-font-smoothing: antialiased;
+    position: relative;
+    overflow: hidden;
   }
-  return out;
+  .glow {
+    position: absolute; inset: 0;
+    background: radial-gradient(760px circle at 86% 8%, rgba(108,140,255,0.16), transparent 70%);
+  }
+  .card {
+    position: absolute; inset: 0;
+    padding: 76px 88px 72px;
+    display: flex; flex-direction: column; justify-content: space-between;
+  }
+  .label {
+    font-size: 19px; font-weight: 600; letter-spacing: 0.14em;
+    text-transform: uppercase; color: #9AA1AE;
+  }
+  h1 {
+    margin-top: 18px;
+    font-size: 96px; font-weight: 700; letter-spacing: -0.055em; line-height: 1;
+  }
+  .pitch {
+    margin-top: 22px;
+    font-size: 30px; font-weight: 500; letter-spacing: -0.015em; color: #C8CCD4;
+  }
+  .nums {
+    display: grid; grid-template-columns: repeat(3, 1fr); gap: 32px;
+    border-top: 1px solid #272B35; padding-top: 28px;
+  }
+  .nums b {
+    display: block;
+    font-size: 64px; font-weight: 700; letter-spacing: -0.05em; line-height: 1;
+    color: #6C8CFF; font-variant-numeric: tabular-nums;
+  }
+  .nums span { display: block; margin-top: 10px; font-size: 19px; color: #9AA1AE; }
+</style></head>
+<body>
+  <div class="glow"></div>
+  <div class="card">
+    <div>
+      <div class="label">AI/ML Engineer</div>
+      <h1>Faris Hittiny</h1>
+      <p class="pitch">I build AI systems, then measure whether they work.</p>
+    </div>
+    <div class="nums">
+      ${NUMBERS.map(([n, l]) => `<div><b>${n}</b><span>${l}</span></div>`).join("")}
+    </div>
+  </div>
+</body></html>`;
+
+const browser = await chromium.launch();
+try {
+  const page = await browser.newPage({ viewport: { width: 1200, height: 630 }, deviceScaleFactor: 1 });
+  await page.setContent(html, { waitUntil: "load" });
+  const loaded = await page.evaluate(async () => {
+    const faces = await document.fonts.load('700 96px "Manrope"');
+    await document.fonts.ready;
+    return faces.length > 0 && faces.every((f) => f.status === "loaded");
+  });
+  if (!loaded) throw new Error("Manrope did not load; refusing to write a fallback-font card");
+  await page.screenshot({ path: out, clip: { x: 0, y: 0, width: 1200, height: 630 } });
+  console.log("wrote og-image.png (1200x630)");
+} finally {
+  await browser.close();
 }
-
-let a = 0xfa215;
-const rand = () => {
-  a |= 0;
-  a = (a + 0x6d2b79f5) | 0;
-  let t = Math.imul(a ^ (a >>> 15), 1 | a);
-  t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
-  return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
-};
-
-const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630">
-  <rect width="1200" height="630" fill="#f2eee3"/>
-  ${latticeLines(rand, 1200, 630, 70, 170)}
-  <rect x="0" y="0" width="1200" height="630" fill="url(#f)"/>
-  <defs><radialGradient id="f" cx="30%" cy="45%" r="80%">
-    <stop offset="0%" stop-color="#f2eee3" stop-opacity="0.55"/>
-    <stop offset="100%" stop-color="#f2eee3" stop-opacity="0.93"/>
-  </radialGradient></defs>
-  <text x="90" y="255" font-family="Georgia, serif" font-size="30" letter-spacing="6" fill="#5d6a8a">FH-2027 · PRELIMINARY DATASHEET · REV 2.1</text>
-  <text x="84" y="360" font-family="Georgia, serif" font-size="92" font-weight="600" fill="#1a2338">Faris Hittiny</text>
-  <rect x="90" y="392" width="520" height="4" fill="#16386f"/>
-  <text x="90" y="460" font-family="Georgia, serif" font-size="34" fill="#3e4a68">Computer systems, from RTL to production AI.</text>
-</svg>`;
-
-await sharp(Buffer.from(svg)).png({ compressionLevel: 9 }).toFile(path.join(root, "public", "og-image.png"));
-console.log("og-image.png written");
