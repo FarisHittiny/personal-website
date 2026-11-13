@@ -90,6 +90,10 @@ export async function loadModelCharacter(url = MODEL_URL): Promise<Character> {
   kick.setLoop(LoopOnce, 1);
   kick.clampWhenFinished = true;
   kick.timeScale = kick.getClip().duration / KICK_TIME;
+  // The celebration is a single fist pump (Mixamo "Fist Pump", 1.9 s): it
+  // plays once per pad and holds its last frame while the weight fades out.
+  cheer.setLoop(LoopOnce, 1);
+  cheer.clampWhenFinished = true;
   for (const a of [idle, walk, run, cheer]) { a.play(); a.setEffectiveWeight(0); }
   idle.setEffectiveWeight(1);
 
@@ -100,6 +104,7 @@ export async function loadModelCharacter(url = MODEL_URL): Promise<Character> {
     return b;
   };
   const rArm = bone("mixamorigRightArm"), rFore = bone("mixamorigRightForeArm"), rHand = bone("mixamorigRightHand");
+  const chest = bone("mixamorigSpine2");
 
   const paddle = new Group();
   const grip = new Mesh(geo(new CylinderGeometry(0.035, 0.035, 0.2, 8)), own(new MeshStandardMaterial({ color: BOOT, roughness: 0.7 })));
@@ -119,6 +124,7 @@ export async function loadModelCharacter(url = MODEL_URL): Promise<Character> {
   const loco = { idle: 1, walk: 0, run: 0, cheer: 0 };
   const goal = { idle: 1, walk: 0, run: 0, cheer: 0 };
   let kicking = false;
+  let cheering = false;
 
   const tmpA = new Vector3(), tmpB = new Vector3(), want = new Vector3();
   const qa = new Quaternion(), qb = new Quaternion();
@@ -139,7 +145,12 @@ export async function loadModelCharacter(url = MODEL_URL): Promise<Character> {
   function update(pose: CharacterPose, now: number, dt: number): void {
     const sp = pose.speed;
     goal.idle = goal.walk = goal.run = goal.cheer = 0;
-    if (pose.state === "cheer") goal.cheer = 1;
+    if (pose.state === "cheer") {
+      if (!cheering) cheer.reset().play();   // a fresh pump each time he reaches a lit pad
+      goal.cheer = 1;
+    }
+    cheering = pose.state === "cheer";
+    if (goal.cheer) { /* fist pump */ }
     else if (sp < IDLE_BELOW) goal.idle = 1;
     else if (sp < RUN_FROM) goal.walk = 1;
     else goal.run = 1;
@@ -165,19 +176,64 @@ export async function loadModelCharacter(url = MODEL_URL): Promise<Character> {
     mixer.update(dt);
 
     paddle.visible = pball.visible = pose.paddling;
-    if (pose.paddling) {
-      // Upper arm forward and a little down, forearm level: paddle held out in front.
-      aim(rArm, rFore, new Vector3(0.15, -0.35, 1).normalize());
-      aim(rFore, rHand, new Vector3(0.05, 0.1, 1).normalize());
-      root.updateMatrixWorld(true);
-      rHand.getWorldPosition(tmpA);
-      root.worldToLocal(tmpA);
-      paddle.position.copy(tmpA);
-      paddle.rotation.set(Math.PI / 2 - 0.25, 0, 0); // blade flat-ish, facing up
-      paddle.position.z += 0.05;
-      const bnc = Math.abs(Math.sin(now / 1000 * 5.4));
-      pball.position.set(tmpA.x, tmpA.y + 0.12 + bnc * 0.6, tmpA.z + 0.42);
-    }
+    if (pose.paddling) swing(now);
+  }
+
+  /* ---- pickleball forehand, on top of the idle clip ----
+   * Root space: +Z is his front, -X his right. One rally every SWING_S: the
+   * ball arcs in, he turns back, swings through it at waist height and follows
+   * through across his body, and the ball flies back out. */
+  const SWING_S = 1.6;
+  const KEYS: readonly (readonly [number, Vector3, number])[] = [
+    // [phase, upper-arm direction, chest twist (rad, - = turned to his right)]
+    [0.0, new Vector3(-0.35, -0.75, 0.55), 0],      // ready
+    [0.4, new Vector3(-0.8, -0.6, -0.35), -0.45],  // backswing, waist height
+    [0.55, new Vector3(-0.55, -0.35, 0.75), -0.1],  // contact
+    [0.72, new Vector3(0.55, 0.15, 0.6), 0.35],     // follow-through
+    [1.0, new Vector3(-0.35, -0.75, 0.55), 0],      // back to ready
+  ];
+  const CONTACT = 0.55;
+  const BALL_IN = new Vector3(-1.7, 1.9, 4.5), BALL_OUT = new Vector3(0.9, 2.4, 6.5);
+  const contactAt = new Vector3(-0.95, 1.25, 0.95);  // refined from the paddle each swing
+  const upperDir = new Vector3(), foreDir = new Vector3(), tmpC = new Vector3();
+  const UP = new Vector3(0, 1, 0), FORE_BEND = new Vector3(0, 0.35, 0.45);
+  const ease = (t: number): number => t * t * (3 - 2 * t);
+
+  function twist(b: Object3D, angle: number): void {
+    root.updateMatrixWorld(true);
+    want.copy(UP).transformDirection(root.matrixWorld);
+    qa.setFromAxisAngle(want, angle);
+    b.getWorldQuaternion(qb);
+    const parentQ = b.parent!.getWorldQuaternion(new Quaternion());
+    b.quaternion.copy(parentQ.invert().multiply(qa.multiply(qb)));
+  }
+
+  function swing(now: number): void {
+    const u = ((now / 1000) % SWING_S) / SWING_S;
+    let i = 0;
+    while (i < KEYS.length - 2 && u >= KEYS[i + 1]![0]) i++;
+    const [u0, d0, t0] = KEYS[i]!, [u1, d1, t1] = KEYS[i + 1]!;
+    const f = ease((u - u0) / (u1 - u0));
+    upperDir.copy(d0).lerp(d1, f).normalize();
+    twist(chest, t0 + (t1 - t0) * f);
+    aim(rArm, rFore, upperDir);
+    foreDir.copy(upperDir).add(FORE_BEND).normalize();
+    aim(rFore, rHand, foreDir);
+
+    root.updateMatrixWorld(true);
+    rHand.getWorldPosition(tmpA);
+    root.worldToLocal(tmpA);
+    paddle.position.copy(tmpA);
+    paddle.quaternion.setFromUnitVectors(UP, foreDir);  // grip along the forearm, blade beyond the hand
+    if (Math.abs(u - CONTACT) < 0.02) tmpC.copy(foreDir).multiplyScalar(0.4).add(tmpA), contactAt.lerp(tmpC, 0.5);
+
+    // Ball: in on an arc to the contact point, then back out.
+    const into = u < CONTACT;
+    const s = into ? u / CONTACT : (u - CONTACT) / (1 - CONTACT);
+    if (into) pball.position.copy(BALL_IN).lerp(contactAt, s);
+    else pball.position.copy(contactAt).lerp(BALL_OUT, s);
+    pball.position.y += Math.sin(Math.PI * s) * (into ? 0.7 : 1.1);
+    pball.visible = s < 0.92 || into;
   }
 
   return {

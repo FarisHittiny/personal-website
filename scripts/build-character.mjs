@@ -37,7 +37,7 @@ const CLIPS = [
   ["walk", "walk.fbx", null],
   ["run", "run.fbx", null],
   ["kick", "kick.fbx", null],
-  ["cheer", "cheer.fbx", null],
+  ["cheer", "cheer.fbx", 1.9], // Mixamo "Fist Pump"; the pump is 0.4–1.6 s
 ];
 const SKIP = /Hand(Thumb|Index|Middle|Ring|Pinky)|Toe_End|HeadTop_End/;
 

@@ -7,7 +7,7 @@
   --ink: #F2F3F5;    --soft: #C8CCD4;   --mute: #9AA1AE;
   --accent: #6C8CFF; --tint: rgba(108,140,255,0.13); --tag: #A9BCFF;
   --glass: rgba(18,20,26,0.9);  --hover: rgba(255,255,255,0.035);
-  --glow: rgba(108,140,255,0.11); --flash: rgba(108,140,255,0.16);
+  --glow: rgba(108,140,255,0.11); --flash: rgba(108,140,255,0.30);
   --font: "Manrope", "Helvetica Neue", Arial, sans-serif;
   --gutter: clamp(18px, 5vw, 72px);
   --r-s: 10px; --r-m: 14px; --r-l: 18px; --r-pill: 999px;

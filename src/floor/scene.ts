@@ -29,12 +29,9 @@ import {
   DirectionalLight,
   Float32BufferAttribute,
   Fog,
-  GridHelper,
   Group,
   HemisphereLight,
   IcosahedronGeometry,
-  LineBasicMaterial,
-  LineSegments,
   Material,
   Mesh,
   MeshBasicMaterial,
@@ -47,9 +44,9 @@ import {
   PointLight,
   Points,
   PointsMaterial,
+  RepeatWrapping,
   Raycaster,
   Scene,
-  SphereGeometry,
   Sprite,
   SpriteMaterial,
   SRGBColorSpace,
@@ -58,7 +55,6 @@ import {
   Vector2,
   Vector3,
   WebGLRenderer,
-  WireframeGeometry,
 } from "three";
 import { BALL_START, HEADLINES } from "../content";
 import { createStandInCharacter, type Character } from "./character";
@@ -78,7 +74,8 @@ const LAMP_INTENSITY = 45;
 const LAMP_DECAY = 1.1;
 const DISC_EMISSIVE_BASE = 0.004;
 const DISC_EMISSIVE_GLOW = 0.8;
-const CORE_EMISSIVE = 0.42;
+const CORE_EMISSIVE = 0.04;      // was 0.42 on the glowing wireframe ball; now a real ball, barely lit
+const GROUND_TILE = 4;           // world units per pattern tile
 
 /* ---- pad labels ----
  * Which line of the pad label is drawn large. "topic" (Faris's pick): big
@@ -134,6 +131,108 @@ function drawLabel(c: HTMLCanvasElement, num: string, topic: string): void {
   }
 }
 
+/** A soccer ball without a texture: a finely subdivided sphere whose vertices
+ *  take the colour of the nearest truncated-icosahedron face (12 black
+ *  pentagons at the icosahedron's vertices, 20 white hexagons at its face
+ *  centres), with a thin dark seam where two faces meet. */
+function soccerBallGeometry(r: number): BufferGeometry {
+  const base = new IcosahedronGeometry(1, 0).getAttribute("position");
+  const centres: { v: Vector3; pent: boolean }[] = [];
+  const seen: Vector3[] = [];
+  for (let i = 0; i < base.count; i++) {
+    const v = new Vector3().fromBufferAttribute(base, i).normalize();
+    if (!seen.some((s) => s.distanceToSquared(v) < 1e-6)) { seen.push(v); centres.push({ v, pent: true }); }
+  }
+  for (let i = 0; i < base.count; i += 3) {
+    const c = new Vector3().fromBufferAttribute(base, i)
+      .add(new Vector3().fromBufferAttribute(base, i + 1))
+      .add(new Vector3().fromBufferAttribute(base, i + 2)).normalize();
+    centres.push({ v: c, pent: false });
+  }
+  const g = new IcosahedronGeometry(r, 24);
+  const pos = g.getAttribute("position");
+  const col = new Float32Array(pos.count * 3);
+  const n = new Vector3();
+  const WHITE = new Color(0xf2f3f5), BLACK = new Color(0x15171c), SEAM = new Color(0x4a4f5c);
+  for (let i = 0; i < pos.count; i++) {
+    n.fromBufferAttribute(pos, i).normalize();
+    let d1 = -2, d2 = -2, best = centres[0]!;
+    for (const c of centres) {
+      const d = n.dot(c.v);
+      if (d > d1) { d2 = d1; d1 = d; best = c; } else if (d > d2) d2 = d;
+    }
+    const k = d1 - d2 < 0.012 ? SEAM : best.pent ? BLACK : WHITE;
+    col.set([k.r, k.g, k.b], i * 3);
+  }
+  g.setAttribute("color", new Float32BufferAttribute(col, 3));
+  return g;
+}
+
+/** One tile of the floor pattern: an eight-pointed star (khatam, two squares
+ *  at 45°) inside an octagon, joined to its neighbours by a Damascene lattice
+ *  of crossing bands; quarter stars sit on the corners so tiles join up. Thin
+ *  lines in the stage's blue, faint on the ground colour. Drawn once. */
+function groundTile(): CanvasTexture {
+  const S = 512;
+  const c = document.createElement("canvas");
+  c.width = c.height = S;
+  const x = c.getContext("2d")!;
+  x.fillStyle = "#0f121a";
+  x.fillRect(0, 0, S, S);
+  x.lineCap = "round";
+  x.lineJoin = "round";
+  const star = (cx: number, cy: number, r: number): void => {
+    for (const rot of [0, Math.PI / 4]) {
+      x.beginPath();
+      for (let i = 0; i < 4; i++) {
+        const a = rot + Math.PI / 4 + (i * Math.PI) / 2;
+        const px = cx + Math.cos(a) * r, py = cy + Math.sin(a) * r;
+        if (i === 0) x.moveTo(px, py); else x.lineTo(px, py);
+      }
+      x.closePath();
+      x.stroke();
+    }
+  };
+  const octagon = (cx: number, cy: number, r: number): void => {
+    x.beginPath();
+    for (let i = 0; i < 8; i++) {
+      const a = Math.PI / 8 + (i * Math.PI) / 4;
+      const px = cx + Math.cos(a) * r, py = cy + Math.sin(a) * r;
+      if (i === 0) x.moveTo(px, py); else x.lineTo(px, py);
+    }
+    x.closePath();
+    x.stroke();
+  };
+  x.strokeStyle = "rgba(76, 98, 170, 0.2)";
+  x.lineWidth = 3;
+  const h = S / 2;
+  // centre and corner stars (corners are shared with the neighbouring tiles)
+  for (const [cx, cy] of [[h, h], [0, 0], [S, 0], [0, S], [S, S]] as const) {
+    star(cx, cy, S * 0.2);
+    octagon(cx, cy, S * 0.27);
+  }
+  // Damascene lattice: bands from the centre octagon out to the tile edges,
+  // meeting the next tile's bands, and the diagonals between the stars
+  x.strokeStyle = "rgba(76, 98, 170, 0.11)";
+  x.lineWidth = 2;
+  x.beginPath();
+  for (const [ax, ay, bx, by] of [
+    [h, h - S * 0.27, h, 0], [h, h + S * 0.27, h, S], [h - S * 0.27, h, 0, h], [h + S * 0.27, h, S, h],
+  ] as const) { x.moveTo(ax, ay); x.lineTo(bx, by); }
+  x.stroke();
+  x.beginPath();
+  for (const [sx, sy] of [[0, 0], [S, 0], [0, S], [S, S]] as const) {
+    const dx = h - sx, dy = h - sy, l = Math.hypot(dx, dy);
+    x.moveTo(sx + (dx / l) * S * 0.27, sy + (dy / l) * S * 0.27);
+    x.lineTo(h - (dx / l) * S * 0.27, h - (dy / l) * S * 0.27);
+  }
+  x.stroke();
+  const tex = new CanvasTexture(c);
+  tex.colorSpace = SRGBColorSpace;
+  tex.wrapS = tex.wrapT = RepeatWrapping;
+  return tex;
+}
+
 /** Throws if the renderer cannot be created. */
 export function startScene(opts: SceneOptions): FloorScene {
   const { host, canvas, reducedMotion } = opts;
@@ -153,13 +252,16 @@ export function startScene(opts: SceneOptions): FloorScene {
   sun.position.set(6, 12, 9);
   scene.add(sun);
 
+  // Ground: the old blue grid is now a faint Levantine tile (khatam star in a
+  // Damascene lattice, see groundTile). The texture carries the ground colour,
+  // so the material colour is white and the lit result matches the old 0x0f121a.
+  const groundTex = groundTile();
+  groundTex.repeat.set(140 / GROUND_TILE, 140 / GROUND_TILE);
+  groundTex.anisotropy = Math.min(8, renderer.capabilities.getMaxAnisotropy());
   const ground = new Mesh(new PlaneGeometry(140, 140),
-    new MeshLambertMaterial({ color: 0x0f121a }));
+    new MeshLambertMaterial({ color: 0xffffff, map: groundTex }));
   ground.rotation.x = -Math.PI / 2;
   scene.add(ground);
-  const grid = new GridHelper(140, 70, 0x2b3558, 0x182035);
-  grid.position.y = 0.01;
-  scene.add(grid);
 
   const sg = new BufferGeometry();
   const sp: number[] = [];
@@ -167,7 +269,7 @@ export function startScene(opts: SceneOptions): FloorScene {
     sp.push((Math.random() - 0.5) * 160, 8 + Math.random() * 40, (Math.random() - 0.5) * 160 - 20);
   }
   sg.setAttribute("position", new Float32BufferAttribute(sp, 3));
-  scene.add(new Points(sg, new PointsMaterial({ color: 0x9fb2ff, size: 0.18, transparent: true, opacity: 0.7 })));
+  scene.add(new Points(sg, new PointsMaterial({ color: 0x9fb2ff, size: 0.18, transparent: true, opacity: 0.45 })));
 
   /* ---- pads ---- */
   const pads = HEADLINES.map((h) => h.pad);
@@ -183,8 +285,8 @@ export function startScene(opts: SceneOptions): FloorScene {
     ring.rotation.x = Math.PI / 2;
     ring.position.y = 0.1;
     g.add(ring);
-    const beam = new Mesh(new CylinderGeometry(0.03, 0.03, 5, 8),
-      new MeshBasicMaterial({ color: ACC, transparent: true, opacity: 0.22 }));
+    const beam = new Mesh(new CylinderGeometry(0.02, 0.02, 5, 8),
+      new MeshBasicMaterial({ color: ACC, transparent: true, opacity: 0.1 }));
     beam.position.y = 2.5;
     g.add(beam);
     const label = document.createElement("canvas");
@@ -216,11 +318,9 @@ export function startScene(opts: SceneOptions): FloorScene {
 
   /* ---- ball and lamp ---- */
   const ball = new Group();
-  const core = new Mesh(new SphereGeometry(R, 36, 24), new MeshStandardMaterial({
-    color: 0xdfe6ff, emissive: ACC, emissiveIntensity: CORE_EMISSIVE, roughness: 0.3 }));
-  const wire = new LineSegments(new WireframeGeometry(new IcosahedronGeometry(R * 1.02, 1)),
-    new LineBasicMaterial({ color: STAGE, transparent: true, opacity: 0.55 }));
-  ball.add(core, wire);
+  const core = new Mesh(soccerBallGeometry(R), new MeshStandardMaterial({
+    vertexColors: true, roughness: 0.55, emissive: ACC, emissiveIntensity: CORE_EMISSIVE }));
+  ball.add(core);
   ball.position.set(BALL_START.x, R, BALL_START.z);
   scene.add(ball);
   const lamp = new PointLight(ACC, LAMP_INTENSITY, 18, LAMP_DECAY);

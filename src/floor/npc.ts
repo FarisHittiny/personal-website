@@ -30,11 +30,11 @@ export interface NpcOutput {
 
 export interface Npc { step(input: NpcInput): NpcOutput; userTookBall(): void }
 
-/* Tuning, verbatim from the prototype. */
+/* Tuning: the prototype's, except where marked (Faris, Nov 2026: kick less, fist pump). */
 const START_X = -3.5, START_Z = -3.5;
 const FIRST_IDLE_MS = 6500;          // until = now + 6500
 const FIRST_PADDLE_MS = 6300;        // paddleUntil = now + 6300
-const FIRST_COOL_MS = 8500;          // cool = now + 8500
+const FIRST_COOL_MS = 12000;         // first pass at ~12 s (was 8500)
 const INPUT_GUARD_MS = 3000;         // no key/click for 3 s
 const IDLE_BALL_SPEED = 1.5;         // ball nearly stopped
 const KICK_MAX_HEIGHT = 0.4;         // by < 0.4
@@ -47,12 +47,12 @@ const AIM_PAD_OFF_PAD = 0.65;        // chance to aim at a pad when the ball is 
 const AIM_PAD_ON_PAD = 0.5;          // ... and when it is sitting on one
 const CENTRE = { x: 0, z: 2.5 };     // BALL_START in content.ts
 const KICK_TIME = 0.3;               // s
-const KICK_COOL_MS = 5200;
+const KICK_COOL_MS = 45000;          // at most one pass every 45 s (was 5200)
 const AFTER_KICK_IDLE_MS = 1200;
 const PAD_SIDE_SCALE = 0.72;         // stand at (p.x * 0.72, p.z * 0.72 - 0.6)
 const PAD_SIDE_BACK = 0.6;
 const PAD_ARRIVE = 0.5;
-const CHEER_MS = 2600;
+const CHEER_MS = 1900;               // the fist pump clip (was a 2.6 s cheer)
 const LEAVE_PAD_IDLE_MS = 800;
 const WANDER_SPREAD = 7;             // ball.x ± 7
 const WANDER_X_LIMIT = 14;
@@ -86,6 +86,7 @@ export function createNpc(
   let pad = -1, padSince = 0;
   let passed = false;
   let cheerUntil = 0;
+  let firstPass = true;                // the first pass always lands on a pad, so the card demo shows
 
   function wanderTo(ballX: number, ballZ: number): void {
     tx = clamp(ballX + (rng() * WANDER_SPREAD * 2 - WANDER_SPREAD), -WANDER_X_LIMIT, WANDER_X_LIMIT);
@@ -111,12 +112,13 @@ export function createNpc(
       if (bd < KICK_DIST) {
         /* Pass it onto a pad, or back to the middle. */
         let dest: { x: number; z: number } = CENTRE;
-        if (rng() < (onPad >= 0 ? AIM_PAD_ON_PAD : AIM_PAD_OFF_PAD) && pads.length > (onPad >= 0 ? 1 : 0)) {
+        if ((firstPass || rng() < (onPad >= 0 ? AIM_PAD_ON_PAD : AIM_PAD_OFF_PAD)) && pads.length > (onPad >= 0 ? 1 : 0)) {
           let pick: number;
           do { pick = Math.floor(rng() * pads.length); } while (pick === onPad);
           dest = pads[pick];
         }
         kick = { x: dest.x, z: dest.z };
+        firstPass = false;
         passed = true;
         kickT = KICK_TIME; cool = t + KICK_COOL_MS; state = "idle"; until = t + AFTER_KICK_IDLE_MS; goal = 0;
       }

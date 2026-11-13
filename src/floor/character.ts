@@ -120,24 +120,31 @@ export function createStandInCharacter(): Character {
     legL.rotation.x = sw; legR.rotation.x = -sw;
     armL.rotation.x = -sw * 0.8; armR.rotation.x = sw * 0.8;
     armL.rotation.z = 0; armR.rotation.z = 0;
-    let hop = 0;
+
 
     paddle.visible = pball.visible = pose.paddling;
+    body.rotation.y = 0;
     if (pose.paddling) {
-      const bnc = Math.abs(Math.sin(now / 1000 * 5.4));
-      armR.rotation.x = -1.35 + (1 - bnc) * 0.14;
-      pball.position.set(0.42, 1.52 + bnc * 0.6, 0.86);
+      // Forehand rally, same timing as the GLB character (modelCharacter.ts):
+      // turn back, swing through at waist height, follow through.
+      const u = ((now / 1000) % 1.6) / 1.6, contact = 0.55;
+      const sweep = u < 0.4 ? -(u / 0.4) : u < 0.72 ? -1 + ((u - 0.4) / 0.32) * 2 : 1 - ((u - 0.72) / 0.28);
+      body.rotation.y = sweep * 0.45;
+      armR.rotation.x = -1.15;
+      armR.rotation.z = sweep * 0.9;
+      const s = u < contact ? u / contact : (u - contact) / (1 - contact);
+      const [ax, ay, az, bx, by, bz] = u < contact ? [1.4, 1.9, 4.5, 0.75, 1.15, 0.95] : [0.75, 1.15, 0.95, -0.9, 2.4, 6.5];
+      pball.position.set(ax + (bx - ax) * s, ay + (by - ay) * s + Math.sin(Math.PI * s) * 0.8, az + (bz - az) * s);
     }
     if (pose.state === "cheer") {
-      const c = now / 140;
-      hop = Math.abs(Math.sin(c)) * 0.28;
-      armL.rotation.x = Math.PI + Math.sin(c * 2) * 0.25;
-      armR.rotation.x = Math.PI - Math.sin(c * 2) * 0.25;
-      armL.rotation.z = 0.25; armR.rotation.z = -0.25;
+      // One quick fist pump (the GLB plays Mixamo's "Fist Pump").
+      const c = (now % 1900) / 1900;
+      armR.rotation.x = -2.2 - Math.max(0, Math.sin(c * Math.PI * 3)) * 0.5;
+      armR.rotation.z = -0.15;
     }
     if (pose.kick > 0) legR.rotation.x = -1.3 * Math.sin(Math.PI * pose.kick);
 
-    body.position.y = hop + Math.abs(Math.sin(phase)) * 0.07 * run + (run < 0.05 && !hop ? Math.sin(now / 600) * 0.012 : 0);
+    body.position.y = Math.abs(Math.sin(phase)) * 0.07 * run + (run < 0.05 ? Math.sin(now / 600) * 0.012 : 0);
     body.rotation.x = 0.16 * run;
   }
 
