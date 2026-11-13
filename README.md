@@ -174,3 +174,17 @@ API"; that is expected. To test against a local copy of the API instead, build w
 Posts to Formspree (free tier: 50 submissions/month) with `FORMSPREE_ID` in
 `src/lib/contact.ts`. If the request fails, the form says so and points to the
 email address.
+
+## The character (Phase 2)
+
+The floor's character is `public/models/faris.glb` (about 600 KB): a stylized 3D model of Faris
+with five baked clips (idle, walk, run, kick, cheer). `src/floor/modelCharacter.ts` loads it in its
+own chunk once the page is idle and swaps it in for the primitive stand-in (`character.ts`). If the
+file fails to load, or with `?stand-in` in the URL, the stand-in stays.
+
+How it was made: photos → stylized front image (Higgsfield, Nano Banana 2.1) → 3D mesh (Hunyuan3D-2.1,
+free Hugging Face demo) → auto-rig with Mixamo bone names (Tripo) → Mixamo clips retargeted onto that
+skeleton by `npm run character` (`scripts/build-character.mjs`), which also compresses the result
+(meshopt, quantized, 1K WebP texture). The sources live in `assets-src/character/`, which is
+git-ignored; ask Faris for them to rebuild. `dev/character.html?clip=walk&t=0.3` previews the GLB
+under `npm run dev`.

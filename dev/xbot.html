@@ -1,0 +1,18 @@
+<!doctype html>
+<!-- Dev-only: plays a source Mixamo clip on X Bot for comparison. /dev/xbot.html?clip=idle&t=1 -->
+<html><head><meta charset="utf-8"><style>html,body{margin:0;background:#0b0d12}canvas{display:block}</style></head><body>
+<script type="module">
+import * as THREE from "three";
+import { FBXLoader } from "three/examples/jsm/loaders/FBXLoader.js";
+const q = new URLSearchParams(location.search);
+const r = new THREE.WebGLRenderer({ antialias: true }); r.setSize(innerWidth, innerHeight); document.body.append(r.domElement);
+const s = new THREE.Scene(); s.add(new THREE.HemisphereLight(0xffffff, 0x334, 2.5));
+const cam = new THREE.PerspectiveCamera(35, innerWidth / innerHeight, 1, 5000);
+const L = new FBXLoader();
+const bot = await L.loadAsync("/assets-src/character/xbot.fbx");
+const clip = (await L.loadAsync(`/assets-src/character/${q.get("clip")}.fbx`)).animations[0];
+bot.rotation.y = Number(q.get("yaw") ?? 0) * Math.PI / 180; s.add(bot);
+cam.position.set(0, 100, 440); cam.lookAt(0, 95, 0);
+const m = new THREE.AnimationMixer(bot); m.clipAction(clip).play(); m.setTime(Number(q.get("t") ?? 0));
+r.render(s, cam); window.__ready = true;
+</script></body></html>

@@ -1,0 +1,52 @@
+<!doctype html>
+<!-- Dev-only preview of public/models/faris.glb (not a build input).
+     npm run dev, then open /dev/character.html?clip=walk&t=0.4 -->
+<html lang="en">
+<head><meta charset="utf-8"><title>Character preview</title>
+<style>html,body{margin:0;background:#0b0d12}canvas{display:block}</style></head>
+<body>
+<script type="module">
+import * as THREE from "three";
+import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader.js";
+import { MeshoptDecoder } from "three/examples/jsm/libs/meshopt_decoder.module.js";
+
+const q = new URLSearchParams(location.search);
+const clipName = q.get("clip") ?? "idle";
+const at = q.get("t");               // fixed time for screenshots; omit to play
+const yaw = Number(q.get("yaw") ?? 0);
+
+const renderer = new THREE.WebGLRenderer({ antialias: true });
+renderer.setSize(innerWidth, innerHeight);
+renderer.setPixelRatio(devicePixelRatio);
+document.body.append(renderer.domElement);
+const scene = new THREE.Scene();
+scene.add(new THREE.HemisphereLight(0xffffff, 0x334, 2.2));
+const sun = new THREE.DirectionalLight(0xffffff, 2.5); sun.position.set(3, 6, 5); scene.add(sun);
+scene.add(new THREE.GridHelper(6, 12, 0x334, 0x223));
+const camera = new THREE.PerspectiveCamera(35, innerWidth / innerHeight, 0.1, 100);
+
+const gltf = await new GLTFLoader().setMeshoptDecoder(MeshoptDecoder).loadAsync("/models/faris.glb");
+const model = gltf.scene;
+model.rotation.y = yaw * Math.PI / 180;
+scene.add(model);
+const box = new THREE.Box3().setFromObject(model);
+const h = box.max.y - box.min.y;
+camera.position.set(0, h * 0.55, h * 2.4);
+camera.lookAt(0, h * 0.5, 0);
+
+const mixer = new THREE.AnimationMixer(model);
+const clip = gltf.animations.find((c) => c.name === clipName);
+mixer.clipAction(clip).play();
+window.__info = { clips: gltf.animations.map((c) => `${c.name}:${c.duration.toFixed(2)}`), height: h, min: box.min.y };
+
+const clock = new THREE.Clock();
+function frame() {
+  if (at !== null) mixer.setTime(Number(at)); else mixer.update(clock.getDelta());
+  renderer.render(scene, camera);
+  requestAnimationFrame(frame);
+}
+frame();
+window.__ready = true;
+</script>
+</body>
+</html>
