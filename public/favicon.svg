@@ -1,7 +1,7 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32">
   <!-- FH monogram: white letters on the stage colour, thin accent edge.
        Glyphs are rects, not <text>, so they render identically without fonts.
-       Colours: --stage #0B0C10, --accent #6C8CFF (src/styles/tokens.css). -->
+       Colours: stage #0B0C10, accent #6C8CFF (src/styles/tokens.css). -->
   <rect width="32" height="32" rx="8" fill="#0B0C10"/>
   <rect x="0.75" y="0.75" width="30.5" height="30.5" rx="7.4" fill="none" stroke="#6C8CFF" stroke-opacity=".55" stroke-width="1.5"/>
   <g fill="#F2F4FA">
