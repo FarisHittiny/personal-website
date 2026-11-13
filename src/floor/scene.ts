@@ -61,7 +61,7 @@ import {
   WireframeGeometry,
 } from "three";
 import { BALL_START, HEADLINES } from "../content";
-import { createStandInCharacter } from "./character";
+import { createStandInCharacter, type Character } from "./character";
 import { createNpc } from "./npc";
 
 export interface SceneOptions {
@@ -230,8 +230,28 @@ export function startScene(opts: SceneOptions): FloorScene {
 
   /* ---- NPC ---- */
   let clock = 0; // scene clock, ms; advances only while rendering
-  const character = createStandInCharacter();
+  // The stand-in draws at once; the rigged GLB (Phase 2) replaces it when it
+  // has loaded. If it fails, or with ?stand-in, the stand-in stays.
+  let character: Character = createStandInCharacter();
   scene.add(character.root);
+  const swapIn = (next: Character): void => {
+    if (disposed) { next.dispose(); return; }
+    next.root.position.copy(character.root.position);
+    next.root.rotation.copy(character.root.rotation);
+    character.dispose();
+    character = next;
+    scene.add(next.root);
+  };
+  if (!new URLSearchParams(location.search).has("stand-in")) {
+    const loadModel = (): void => {
+      import("./modelCharacter")
+        .then((m) => m.loadModelCharacter())
+        .then(swapIn)
+        .catch((err: unknown) => console.warn("Character model unavailable, keeping the stand-in:", err));
+    };
+    if ("requestIdleCallback" in window) window.requestIdleCallback(loadModel, { timeout: 2500 });
+    else setTimeout(loadModel, 800);
+  }
   const npc = createNpc(pads, clock);
   let npcX = 0;  // his position after the previous frame's step
   let npcZ = 0;

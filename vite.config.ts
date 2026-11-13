@@ -9,7 +9,8 @@ export default defineConfig({
   build: {
     target: "es2022",
     assetsInlineLimit: 2048,
-    // The floor scene chunk (three.js) is about 501 kB, 128 kB gzip. It is
+    // The floor scene chunk (three.js, incl. the animation classes the Phase 2
+    // character shares with it) is about 557 kB, 145 kB gzip. It is
     // lazy-loaded after the page is idle and never blocks first paint, so the
     // default 500 kB warning is raised just past it.
     chunkSizeWarningLimit: 560,

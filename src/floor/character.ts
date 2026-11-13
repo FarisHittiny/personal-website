@@ -35,11 +35,12 @@ export interface Character {
   dispose(): void;
 }
 
-const SKIN = 0xc98f6a, HAIR = 0x17130f, KIT = 0x6c8cff, SHORTS = 0x161a26, SOCK = 0xf2f3f5, BOOT = 0x0d0e12;
+const SKIN = 0xc98f6a, HAIR = 0x17130f, KIT = 0x6c8cff, SHORTS = 0x161a26, SOCK = 0xf2f3f5;
+export const BOOT = 0x0d0e12;
 const DARK = new Set([HAIR, SHORTS, BOOT]);
-const BLADE = 0xf2c230, PICKLEBALL = 0xe9f25a, PICKLEBALL_GLOW = 0x8f9a10;
+export const BLADE = 0xf2c230, PICKLEBALL = 0xe9f25a, PICKLEBALL_GLOW = 0x8f9a10;
 /* r169: emissive intensity ≈ old^2.2 (plan section 2), so the prototype's 0.6 becomes 0.33. */
-const PICKLEBALL_EMISSIVE = 0.33;
+export const PICKLEBALL_EMISSIVE = 0.33;
 
 /* [x, y, z, radius] for each curl of hair. */
 const CURLS: readonly (readonly [number, number, number, number])[] = [
