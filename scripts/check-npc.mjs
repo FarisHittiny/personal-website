@@ -39,7 +39,7 @@ function makeWorld(seed = 1) {
     npc: null,
   };
   w.npc = createNpc(PADS, w.now, mulberry32(seed));
-  w.out = { x: -3.5, z: -3.5, facing: 0, pose: { state: "idle", speed: 0, kick: 0, paddling: false, swing: 0 }, kick: null };
+  w.out = { x: -3.5, z: -3.5, facing: 0, pose: { state: "idle", speed: 0, kick: 0, paddling: false, swing: 0, activity: null }, kick: null };
 
   /** Visitor input: a held key direction, or a click target. */
   w.hold = (x, z) => { w.keys = { x, z }; if (x || z) { w.lastInputAt = w.now; w.npc.userTookBall(); } };
@@ -75,7 +75,8 @@ function makeWorld(seed = 1) {
     w.out = out;
     if (out.kick) {
       const kx = out.kick.x - b.x, kz = out.kick.z - b.z, kl = Math.hypot(kx, kz) || 1;
-      w.kicks.push({ at: w.now, from: on, dest: out.kick, dist: Math.hypot(px - b.x, pz - b.z), swing: out.pose.swing, paddling: out.pose.paddling });
+      w.kicks.push({ at: w.now, from: on, dest: out.kick, dist: Math.hypot(px - b.x, pz - b.z), swing: out.pose.swing, paddling: out.pose.paddling,
+        kickPose: out.pose.kick, facing: out.facing, bx: b.x, bz: b.z });
       w.target = { x: out.kick.x, z: out.kick.z }; b.vx = kx / kl * 7; b.vz = kz / kl * 7; b.bvy = 4.6;
       Object.assign(w.kicks.at(-1), { speed: Math.hypot(b.vx, b.vz), bvy: b.bvy });
     }
@@ -104,17 +105,20 @@ const f2 = (n) => n.toFixed(2);
       passes are a pickleball forehand from paddle reach, the ball leaving at
       the swing's contact point; the paddle is out for every hit. */
 {
-  let firstHits = 0, total = 0, hits = 0, badReach = 0, badContact = 0, noPaddle = 0;
+  let firstHits = 0, total = 0, hits = 0, badReach = 0, badContact = 0, noPaddle = 0, passes = 0, offAim = 0, worst = 0;
   for (let seed = 1; seed <= 200; seed++) {
     const w = makeWorld(seed);
     w.runUntil(400000);
     w.kicks.forEach((k, i) => {
       const hit = k.swing > 0;
+      // the ball leaves the way he faces (never behind him)
+      const aim = angDiff(k.facing, Math.atan2(k.dest.x - k.bx, k.dest.z - k.bz));
+      passes++; worst = Math.max(worst, aim); if (aim > 0.45) offAim++;
       if (i === 0) { if (hit) firstHits++; return; }
       total++;
       if (!hit) return;
       hits++;
-      if (!(k.dist > 0.95 && k.dist < 1.85)) badReach++;
+      if (!(k.dist > 1.4 && k.dist < 1.95)) badReach++;
       if (!(k.swing > 0.5 && k.swing < 0.62)) badContact++;
       if (!k.paddling) noPaddle++;
     });
@@ -124,6 +128,8 @@ const f2 = (n) => n.toFixed(2);
   check("forehands send the ball from paddle reach at the swing's contact, paddle out",
     hits > 0 && badReach === 0 && badContact === 0 && noPaddle === 0,
     `${hits} hits; off reach ${badReach}, off contact ${badContact}, without paddle ${noPaddle}`);
+  check("every pass (kick or forehand) goes the way he faces, within 26°",
+    passes > 0 && offAim === 0, `${passes} passes; off aim ${offAim}; worst ${f2(worst)} rad`);
 }
 
 /* 2. First pass: untouched, he starts the chase at 12 s and passes the ball onto a pad. */
@@ -136,15 +142,15 @@ const f2 = (n) => n.toFixed(2);
   });
   const k = w.kicks[0];
   const toPad = k && PADS.some((pp) => pp.x === k.dest.x && pp.z === k.dest.z);
-  check("untouched, he runs to the ball at 12 s and passes it onto a pad (kick at dist < 0.95, ball speed 7, bvy 4.6)",
-    chaseAt > 12000 && chaseAt < 12000 + 20 && toPad && k && k.dist < 0.95 && Math.abs(k.speed - 7) < 1e-9 && k.bvy === 4.6,
+  check("untouched, he runs to the ball at 12 s, lines up behind it and kicks it onto a pad (from ~1.15, at the strike's contact, ball speed 7, bvy 4.6)",
+    chaseAt > 12000 && chaseAt < 12000 + 20 && toPad && k && k.dist > 1.0 && k.dist < 1.35 && k.kickPose > 0.4 && k.kickPose < 0.52 && Math.abs(k.speed - 7) < 1e-9 && k.bvy === 4.6,
     `chase began ${f2(chaseAt / 1000)} s; kick at ${k && f2(k.at / 1000)} s from ${k && f2(k.dist)} away to (${k && k.dest.x}, ${k && k.dest.z}) at speed ${k && f2(k.speed)}, bvy ${k && k.bvy}; top chase speed ${f2(maxRun)}`);
   check("chase speed tops out at 6.2", maxRun <= 6.2 + 1e-9 && maxRun > 5.5, `max ${maxRun.toFixed(3)}`);
   const kickPoses = [];
-  w.runUntil(w.now + 400, (o) => { kickPoses.push(o.pose.kick); });
+  w.runUntil(w.now + 450, (o) => { kickPoses.push(o.pose.kick); });
   const nonzero = kickPoses.filter((v) => v > 0);
-  check("kick pose runs 0→1 over 0.3 s after the pass",
-    nonzero.length >= 16 && nonzero.length <= 18 && nonzero.every((v, i) => i === 0 || v > nonzero[i - 1]) && nonzero.at(-1) > 0.9,
+  check("the strike follows through to the end (~0.3 s after contact)",
+    nonzero.length >= 15 && nonzero.length <= 22 && nonzero.every((v, i) => i === 0 || v > nonzero[i - 1]) && nonzero.at(-1) > 0.9,
     `${nonzero.length} frames of kick, last ${f2(nonzero.at(-1))}`);
 }
 
@@ -286,7 +292,7 @@ const f2 = (n) => n.toFixed(2);
       }
       if (s === "idle" && idleFromWalk && o.pose.paddling) paddledThisIdle = true;
       if (prev === "idle" && s !== "idle" && idleFromWalk) { if (paddledThisIdle) paddles++; idleFromWalk = false; }
-      if (s === "idle" && !o.pose.paddling && o.pose.speed < 0.05 && idleFromWalk) {
+      if (s === "idle" && !o.pose.paddling && !o.pose.activity && o.pose.speed < 0.05 && idleFromWalk) {
         // after turning settles, he should face the ball
         faceSamples++;
         if (angDiff(o.facing, Math.atan2(ww.ball.x - o.x, ww.ball.z - o.z)) > 0.15) faceOff++;

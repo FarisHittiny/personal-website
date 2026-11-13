@@ -32,12 +32,19 @@ const SRC = "assets-src/character";
 const OUT = "public/models/faris.glb";
 const FPS = 30;
 const CLIPS = [
-  // name, file, seconds to keep (null = whole clip)
-  ["idle", "idle.fbx", 4],
+  // name, file, seconds to keep (null = whole clip). All Mixamo, "without skin".
+  ["idle", "idle-breathing.fbx", null],        // "Breathing Idle": calm standing loop
   ["walk", "walk.fbx", null],
   ["run", "run.fbx", null],
-  ["kick", "kick.fbx", null],
-  ["cheer", "cheer.fbx", 1.9], // Mixamo "Fist Pump"; the pump is 0.4–1.6 s
+  ["kick", "strike.fbx", null],                // "Strike Forward Jog": contact at 0.57 s
+  ["cheer", "cheer.fbx", 1.9],                 // "Fist Pump"; the pump is 0.4–1.6 s
+  // idle activities (npc.ts ACTIVITIES)
+  ["weightshift", "idle-weightshift.fbx", 8],  // "Idle" (weight shift)
+  ["lookaround", "idle-lookaround.fbx", null], // "Looking Around"
+  ["stretch", "idle-stretch.fbx", null],       // "Arm Stretching"
+  ["thinking", "idle-thinking.fbx", null],     // "Thinking"
+  ["texting", "idle-texting.fbx", 8],          // "Texting While Standing"
+  ["juggle", "pack-kick-soccerball-_2_.fbx", null], // "Juggling Right Kick": touch at 0.27 s, loops
 ];
 const SKIP = /Hand(Thumb|Index|Middle|Ring|Pinky)|Toe_End|HeadTop_End/;
 

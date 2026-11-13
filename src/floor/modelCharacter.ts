@@ -15,14 +15,16 @@
 import {
   AnimationMixer,
   Box3,
+  BoxGeometry,
   CircleGeometry,
   Group,
   LoopOnce,
   Matrix4,
   Mesh,
   MeshBasicMaterial,
-  type MeshStandardMaterial,
+  MeshStandardMaterial,
   Quaternion,
+  SphereGeometry,
   Vector3,
   type AnimationAction,
   type Bone,
@@ -32,7 +34,7 @@ import {
 } from "three";
 import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader.js";
 import { MeshoptDecoder } from "three/examples/jsm/libs/meshopt_decoder.module.js";
-import { buildPaddle, type Character, type CharacterPose } from "./character";
+import { buildPaddle, type Character, type CharacterActivity, type CharacterPose } from "./character";
 
 export const MODEL_URL = "/models/faris.glb";
 
@@ -42,7 +44,7 @@ const RUN_SPEED = 4.6;        // same for the run clip
 const RUN_FROM = 2.8;         // above this speed he runs instead of walks
 const IDLE_BELOW = 0.25;
 const FADE = 0.18;            // s, cross-fade between locomotion clips
-const KICK_TIME = 0.3;        // s, the brain's kick length (npc.ts)
+const STRIKE_FROM = 0.32;     // s into "Strike Forward Jog" where the brain's 0.55 s strike starts
 const PADDLE_SCALE = 1.2;     // a touch over life size, so it reads at floor scale
 
 export async function loadModelCharacter(url = MODEL_URL): Promise<Character> {
@@ -83,9 +85,15 @@ export async function loadModelCharacter(url = MODEL_URL): Promise<Character> {
   };
   const idle = action("idle"), walk = action("walk"), run = action("run");
   const kick = action("kick"), cheer = action("cheer");
+  // The kick is Mixamo's "Strike Forward Jog": the brain's strike covers the
+  // clip's last stride and the strike (STRIKE_FROM..+STRIKE_TIME, contact at
+  // 0.57 s), so the foot meets the ball when the brain sends it.
   kick.setLoop(LoopOnce, 1);
   kick.clampWhenFinished = true;
-  kick.timeScale = kick.getClip().duration / KICK_TIME;
+  /* Idle activities (npc.ts ACTIVITIES); "juggle" loops one touch. */
+  const ACTIVITY_NAMES = ["weightshift", "lookaround", "stretch", "thinking", "texting", "juggle"] as const;
+  const acts = Object.fromEntries(ACTIVITY_NAMES.map((n) => [n, action(n)])) as Record<CharacterActivity, AnimationAction>;
+  for (const a of Object.values(acts)) { a.play(); a.setEffectiveWeight(0); }
   // The celebration is a single fist pump (Mixamo "Fist Pump", 1.9 s): it
   // plays once per pad and holds its last frame while the weight fades out.
   cheer.setLoop(LoopOnce, 1);
@@ -101,6 +109,17 @@ export async function loadModelCharacter(url = MODEL_URL): Promise<Character> {
   };
   const rArm = bone("mixamorigRightArm"), rFore = bone("mixamorigRightForeArm"), rHand = bone("mixamorigRightHand");
   const chest = bone("mixamorigSpine2");
+  const lHand = bone("mixamorigLeftHand"), head = bone("mixamorigHead"), rFoot = bone("mixamorigRightFoot");
+
+  /* Props for two activities: a small ball for juggling, a phone for texting. */
+  const jball = new Mesh(geo(new SphereGeometry(0.16, 24, 16)),
+    own(new MeshStandardMaterial({ color: 0xe6eaf4, roughness: 0.82 })));
+  jball.visible = false;
+  root.add(jball);
+  const phone = new Mesh(geo(new BoxGeometry(0.13, 0.25, 0.016)),
+    own(new MeshStandardMaterial({ color: 0x15171c, roughness: 0.35 })));
+  phone.visible = false;
+  root.add(phone);
 
   const paddle = buildPaddle(geo, own);
   paddle.scale.setScalar(PADDLE_SCALE);
@@ -108,10 +127,14 @@ export async function loadModelCharacter(url = MODEL_URL): Promise<Character> {
   root.add(paddle);
 
   /* ---- weights ---- */
-  const loco = { idle: 1, walk: 0, run: 0, cheer: 0 };
-  const goal = { idle: 1, walk: 0, run: 0, cheer: 0 };
+  type Slot = "idle" | "walk" | "run" | "cheer" | CharacterActivity;
+  const SLOTS: readonly Slot[] = ["idle", "walk", "run", "cheer", ...ACTIVITY_NAMES];
+  const slotAction: Record<Slot, AnimationAction> = { idle, walk, run, cheer, ...acts };
+  const loco = Object.fromEntries(SLOTS.map((n) => [n, n === "idle" ? 1 : 0])) as Record<Slot, number>;
+  const goal = { ...loco };
   let kicking = false;
   let cheering = false;
+  let current: CharacterActivity | null = null;
 
   const tmpA = new Vector3(), tmpB = new Vector3(), want = new Vector3();
   const qa = new Quaternion(), qb = new Quaternion();
@@ -131,39 +154,66 @@ export async function loadModelCharacter(url = MODEL_URL): Promise<Character> {
 
   function update(pose: CharacterPose, _now: number, dt: number): void {
     const sp = pose.speed;
-    goal.idle = goal.walk = goal.run = goal.cheer = 0;
+    for (const n of SLOTS) goal[n] = 0;
     if (pose.state === "cheer") {
       if (!cheering) cheer.reset().play();   // a fresh pump each time he reaches a lit pad
       goal.cheer = 1;
     }
     cheering = pose.state === "cheer";
+    const act = pose.state === "idle" && sp < IDLE_BELOW ? pose.activity : null;
+    if (act !== current) { if (act) acts[act].reset().play(); current = act; }
     if (goal.cheer) { /* fist pump */ }
+    else if (act) goal[act] = 1;
     else if (sp < IDLE_BELOW) goal.idle = 1;
     else if (sp < RUN_FROM) goal.walk = 1;
     else goal.run = 1;
 
     const k = Math.min(1, dt / FADE);
-    for (const key of ["idle", "walk", "run", "cheer"] as const) loco[key] += (goal[key] - loco[key]) * k;
+    for (const n of SLOTS) loco[n] += (goal[n] - loco[n]) * k;
     walk.timeScale = Math.max(0.6, sp / WALK_SPEED);
     run.timeScale = Math.max(0.7, sp / RUN_SPEED);
 
     if (pose.kick > 0 && !kicking) {
       kicking = true;
       kick.reset().setEffectiveWeight(1).play();
+      kick.time = STRIKE_FROM;
     } else if (pose.kick <= 0 && kicking) {
       kicking = false;
-      kick.fadeOut(0.12);
+      kick.fadeOut(0.15);
     }
-    const free = kicking ? 0.15 : 1;
-    idle.setEffectiveWeight(loco.idle * free);
-    walk.setEffectiveWeight(loco.walk * free);
-    run.setEffectiveWeight(loco.run * free);
-    cheer.setEffectiveWeight(loco.cheer * free);
+    const free = kicking ? 0.1 : 1;
+    for (const n of SLOTS) slotAction[n].setEffectiveWeight(loco[n] * free);
 
     mixer.update(dt);
 
     paddle.visible = pose.paddling;
     if (pose.paddling) forehand(pose.swing);
+    props();
+  }
+
+  /* Juggling ball and phone follow the body after the clips have posed it. */
+  const JUGGLE_TOUCH = 0.27;  // s into the "juggle" clip where the right foot meets the ball
+  const tmpH = new Vector3();
+  function props(): void {
+    jball.visible = loco.juggle > 0.5;
+    phone.visible = loco.texting > 0.5;
+    if (!jball.visible && !phone.visible) return;
+    root.updateMatrixWorld(true);
+    if (jball.visible) {
+      const d = acts.juggle.getClip().duration;
+      const ph = (((acts.juggle.time - JUGGLE_TOUCH) % d) + d) % d / d;  // 0 at each touch
+      rFoot.getWorldPosition(tmpA);
+      root.worldToLocal(tmpA);
+      jball.position.set(tmpA.x, 0.32 + Math.sin(Math.PI * ph) * 1.05, tmpA.z + 0.22);
+    }
+    if (phone.visible) {
+      rHand.getWorldPosition(tmpA); lHand.getWorldPosition(tmpB); head.getWorldPosition(tmpH);
+      root.worldToLocal(tmpA); root.worldToLocal(tmpB); root.worldToLocal(tmpH);
+      phone.position.copy(tmpA).lerp(tmpB, 0.5);
+      phone.position.y += 0.06;
+      phone.position.z += 0.16;   // in front of the fingers, held up toward his face
+      phone.lookAt(root.localToWorld(tmpH.clone()));
+    }
   }
 
   /* ---- pickleball forehand at the big ball, on top of the clips ----

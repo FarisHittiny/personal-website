@@ -21,14 +21,18 @@ import {
   type Object3D,
 } from "three";
 
-export type CharacterState = "idle" | "walk" | "chase" | "run" | "swing" | "cheer" | "watch";
+export type CharacterState = "idle" | "walk" | "chase" | "run" | "kick" | "swing" | "cheer" | "watch";
+
+/** Something he does while standing around (clips in faris.glb; npc.ts picks). */
+export type CharacterActivity = "weightshift" | "lookaround" | "stretch" | "thinking" | "texting" | "juggle";
 
 export interface CharacterPose {
   state: CharacterState;
   speed: number;      // ground speed, world units/s (0 to about 6.2)
-  kick: number;       // 0 = not kicking; otherwise progress 0→1 through the 0.3 s kick
+  kick: number;       // 0 = not kicking; otherwise progress 0→1 through the strike (contact at 0.45)
   paddling: boolean;  // paddle in hand (running in to hit, or swinging)
   swing: number;      // 0 = not swinging; otherwise progress 0→1 through the forehand (contact at 0.55)
+  activity: CharacterActivity | null;  // idle activity, if any (the stand-in just stands)
 }
 
 export interface Character {
