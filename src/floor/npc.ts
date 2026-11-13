@@ -30,10 +30,10 @@ export interface NpcOutput {
 
 export interface Npc { step(input: NpcInput): NpcOutput; userTookBall(): void }
 
-/* Tuning: the prototype's, except where marked (Faris, Nov 2026: kick less, fist pump). */
+/* Tuning: the prototype's, except where marked (Faris, Nov 2026: kick less,
+   fist pump, and he moves the ball with a kick OR a pickleball forehand). */
 const START_X = -3.5, START_Z = -3.5;
 const FIRST_IDLE_MS = 6500;          // until = now + 6500
-const FIRST_PADDLE_MS = 6300;        // paddleUntil = now + 6300
 const FIRST_COOL_MS = 12000;         // first pass at ~12 s (was 8500)
 const INPUT_GUARD_MS = 3000;         // no key/click for 3 s
 const IDLE_BALL_SPEED = 1.5;         // ball nearly stopped
@@ -59,13 +59,14 @@ const WANDER_X_LIMIT = 14;
 const WANDER_Z_MIN = -13, WANDER_Z_MAX = 6;
 const WANDER_ARRIVE = 0.4;
 const WANDER_IDLE_MS = 1400, WANDER_IDLE_RAND_MS = 2600;
-const PADDLE_CHANCE = 0.4;
-const PADDLE_MS = 4200, PADDLE_IDLE_MS = 4400;
+const HIT_CHANCE = 0.5;              // after the first pass: forehand instead of kick
+const HIT_DIST = 1.7;                // he swings from paddle reach, not kicking range
+const SWING_TIME = 0.55;             // s, the whole forehand
+const SWING_CONTACT = 0.55;          // fraction of the swing at which the paddle meets the ball
 const VEL_SMOOTH = 7;                // min(1, dt * 7)
 const FACE_MOVING = 0.5;             // face travel direction above this speed
-const FACE_CAMERA = 0.35;            // rad, while paddling, cheering or watching
+const FACE_CAMERA = 0.35;            // rad, while cheering or watching
 const TURN_RATE = 9;                 // min(1, dt * 9)
-const PADDLE_MAX_SPEED = 0.4;
 
 const clamp = (v: number, lo: number, hi: number): number => Math.max(lo, Math.min(hi, v));
 
@@ -76,7 +77,6 @@ export function createNpc(
 ): Npc {
   let state: CharacterState = "idle";
   let until = now + FIRST_IDLE_MS;
-  let paddleUntil = now + FIRST_PADDLE_MS;
   let cool = now + FIRST_COOL_MS;
   let x = START_X, z = START_Z;
   let tx = START_X, tz = START_Z;
@@ -87,6 +87,10 @@ export function createNpc(
   let passed = false;
   let cheerUntil = 0;
   let firstPass = true;                // the first pass always lands on a pad, so the card demo shows
+  let hitMode: boolean | null = null;  // this pass: forehand (true) or kick (false); chosen when the chase starts
+  let swingT = -1;                     // s into the forehand, -1 when not swinging
+  let swingDest: { x: number; z: number } = CENTRE;
+  let swingFace = 0;
 
   function wanderTo(ballX: number, ballZ: number): void {
     tx = clamp(ballX + (rng() * WANDER_SPREAD * 2 - WANDER_SPREAD), -WANDER_X_LIMIT, WANDER_X_LIMIT);
@@ -107,20 +111,40 @@ export function createNpc(
     const mayKick = t > cool && input.ballHeight < KICK_MAX_HEIGHT && idleBall &&
       (onPad < 0 ? bd < KICK_REACH_OFF_PAD : (passed && t - padSince > PAD_WAIT_MS));
 
-    if (mayKick) {
+    /* Pass it onto a pad, or back to the middle. */
+    const pickDest = (): { x: number; z: number } => {
+      let dest: { x: number; z: number } = CENTRE;
+      if ((firstPass || rng() < (onPad >= 0 ? AIM_PAD_ON_PAD : AIM_PAD_OFF_PAD)) && pads.length > (onPad >= 0 ? 1 : 0)) {
+        let pick: number;
+        do { pick = Math.floor(rng() * pads.length); } while (pick === onPad);
+        dest = pads[pick];
+      }
+      return dest;
+    };
+    const passDone = (): void => {
+      firstPass = false; passed = true; hitMode = null;
+      cool = t + KICK_COOL_MS; state = "idle"; until = t + AFTER_KICK_IDLE_MS; goal = 0;
+    };
+
+    if (swingT >= 0) {
+      /* Mid-forehand: plant, swing, and send the ball at contact. */
+      const before = swingT;
+      swingT += dt;
+      state = "swing";
+      if (before < SWING_TIME * SWING_CONTACT && swingT >= SWING_TIME * SWING_CONTACT) kick = { ...swingDest };
+      if (swingT >= SWING_TIME) { swingT = -1; passDone(); }
+    } else if (mayKick) {
+      if (hitMode === null) hitMode = !firstPass && rng() < HIT_CHANCE;
       state = "chase"; gx = bx; gz = bz; goal = RUN_SPEED;
-      if (bd < KICK_DIST) {
-        /* Pass it onto a pad, or back to the middle. */
-        let dest: { x: number; z: number } = CENTRE;
-        if ((firstPass || rng() < (onPad >= 0 ? AIM_PAD_ON_PAD : AIM_PAD_OFF_PAD)) && pads.length > (onPad >= 0 ? 1 : 0)) {
-          let pick: number;
-          do { pick = Math.floor(rng() * pads.length); } while (pick === onPad);
-          dest = pads[pick];
-        }
-        kick = { x: dest.x, z: dest.z };
-        firstPass = false;
-        passed = true;
-        kickT = KICK_TIME; cool = t + KICK_COOL_MS; state = "idle"; until = t + AFTER_KICK_IDLE_MS; goal = 0;
+      if (hitMode && bd < HIT_DIST) {
+        swingDest = pickDest();
+        // turn so the ball sits at his front-right, where a forehand meets it
+        swingFace = Math.atan2(bx, bz) + Math.PI / 4;
+        swingT = 0; state = "swing"; goal = 0;
+      } else if (!hitMode && bd < KICK_DIST) {
+        kick = pickDest();
+        kickT = KICK_TIME;
+        passDone();
       }
     } else if (onPad >= 0) {
       /* Stand beside the lit pad; cheer for a few seconds, then just watch. */
@@ -129,13 +153,13 @@ export function createNpc(
       if (Math.hypot(ox - x, oz - z) > PAD_ARRIVE) {
         state = "run"; gx = ox - x; gz = oz - z; goal = RUN_SPEED; cheerUntil = t + CHEER_MS;
       } else state = t < cheerUntil ? "cheer" : "watch";
-    } else if (state === "cheer" || state === "watch" || state === "chase" || state === "run") {
+    } else if (state === "cheer" || state === "watch" || state === "chase" || state === "run" || state === "swing") {
+      hitMode = null;
       state = "idle"; until = t + LEAVE_PAD_IDLE_MS;
     } else if (state === "walk") {
       gx = tx - x; gz = tz - z;
       if (Math.hypot(gx, gz) < WANDER_ARRIVE) {
         state = "idle"; until = t + WANDER_IDLE_MS + rng() * WANDER_IDLE_RAND_MS;
-        if (rng() < PADDLE_CHANCE) { paddleUntil = t + PADDLE_MS; until = t + PADDLE_IDLE_MS; }
       } else goal = WALK_SPEED;
     } else if (state === "idle" && t > until) wanderTo(ballX, ballZ);
 
@@ -147,18 +171,20 @@ export function createNpc(
     x += vx * dt; z += vz * dt;
     const speed = Math.hypot(vx, vz);
 
-    /* Face where he is going; when standing, watch the ball; when paddling
-       or cheering, face the camera. */
-    const paddling = state === "idle" && t < paddleUntil && speed < PADDLE_MAX_SPEED;
-    const want = speed > FACE_MOVING ? Math.atan2(vx, vz)
-      : (paddling || state === "cheer" || state === "watch" ? FACE_CAMERA : Math.atan2(bx, bz));
+    /* Face where he is going; when standing, watch the ball; when swinging,
+       keep the ball at his front-right; when cheering, face the camera. */
+    const paddling = swingT >= 0 || (state === "chase" && hitMode === true);
+    const want = swingT >= 0 ? swingFace
+      : speed > FACE_MOVING ? Math.atan2(vx, vz)
+      : (state === "cheer" || state === "watch" ? FACE_CAMERA : Math.atan2(bx, bz));
     face += Math.atan2(Math.sin(want - face), Math.cos(want - face)) * Math.min(1, dt * TURN_RATE);
 
     if (kickT > 0) kickT -= dt;
 
     return {
       x, z, facing: face,
-      pose: { state, speed, kick: kickT > 0 ? 1 - kickT / KICK_TIME : 0, paddling },
+      pose: { state, speed, kick: kickT > 0 ? 1 - kickT / KICK_TIME : 0, paddling,
+        swing: swingT >= 0 ? swingT / SWING_TIME : 0 },
       kick,
     };
   }

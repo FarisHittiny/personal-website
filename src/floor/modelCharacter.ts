@@ -15,16 +15,14 @@
 import {
   AnimationMixer,
   Box3,
-  BoxGeometry,
   CircleGeometry,
-  CylinderGeometry,
   Group,
   LoopOnce,
+  Matrix4,
   Mesh,
   MeshBasicMaterial,
-  MeshStandardMaterial,
+  type MeshStandardMaterial,
   Quaternion,
-  SphereGeometry,
   Vector3,
   type AnimationAction,
   type Bone,
@@ -34,10 +32,7 @@ import {
 } from "three";
 import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader.js";
 import { MeshoptDecoder } from "three/examples/jsm/libs/meshopt_decoder.module.js";
-import {
-  BLADE, BOOT, PICKLEBALL, PICKLEBALL_EMISSIVE, PICKLEBALL_GLOW,
-  type Character, type CharacterPose,
-} from "./character";
+import { buildPaddle, type Character, type CharacterPose } from "./character";
 
 export const MODEL_URL = "/models/faris.glb";
 
@@ -48,6 +43,7 @@ const RUN_FROM = 2.8;         // above this speed he runs instead of walks
 const IDLE_BELOW = 0.25;
 const FADE = 0.18;            // s, cross-fade between locomotion clips
 const KICK_TIME = 0.3;        // s, the brain's kick length (npc.ts)
+const PADDLE_SCALE = 1.2;     // a touch over life size, so it reads at floor scale
 
 export async function loadModelCharacter(url = MODEL_URL): Promise<Character> {
   const gltf = await new GLTFLoader().setMeshoptDecoder(MeshoptDecoder).loadAsync(url);
@@ -106,19 +102,10 @@ export async function loadModelCharacter(url = MODEL_URL): Promise<Character> {
   const rArm = bone("mixamorigRightArm"), rFore = bone("mixamorigRightForeArm"), rHand = bone("mixamorigRightHand");
   const chest = bone("mixamorigSpine2");
 
-  const paddle = new Group();
-  const grip = new Mesh(geo(new CylinderGeometry(0.035, 0.035, 0.2, 8)), own(new MeshStandardMaterial({ color: BOOT, roughness: 0.7 })));
-  const blade = new Mesh(geo(new BoxGeometry(0.34, 0.42, 0.035)), own(new MeshStandardMaterial({ color: BLADE, roughness: 0.5 })));
-  grip.position.y = 0.1;
-  blade.position.y = 0.4;
-  paddle.add(grip, blade);
+  const paddle = buildPaddle(geo, own);
+  paddle.scale.setScalar(PADDLE_SCALE);
   paddle.visible = false;
   root.add(paddle);
-  const pball = new Mesh(geo(new SphereGeometry(0.075, 14, 10)), own(new MeshStandardMaterial({
-    color: PICKLEBALL, emissive: PICKLEBALL_GLOW, emissiveIntensity: PICKLEBALL_EMISSIVE, roughness: 0.5,
-  })));
-  pball.visible = false;
-  root.add(pball);
 
   /* ---- weights ---- */
   const loco = { idle: 1, walk: 0, run: 0, cheer: 0 };
@@ -142,7 +129,7 @@ export async function loadModelCharacter(url = MODEL_URL): Promise<Character> {
     b.quaternion.copy(parentQ.invert().multiply(qa.multiply(qb)));
   }
 
-  function update(pose: CharacterPose, now: number, dt: number): void {
+  function update(pose: CharacterPose, _now: number, dt: number): void {
     const sp = pose.speed;
     goal.idle = goal.walk = goal.run = goal.cheer = 0;
     if (pose.state === "cheer") {
@@ -175,28 +162,31 @@ export async function loadModelCharacter(url = MODEL_URL): Promise<Character> {
 
     mixer.update(dt);
 
-    paddle.visible = pball.visible = pose.paddling;
-    if (pose.paddling) swing(now);
+    paddle.visible = pose.paddling;
+    if (pose.paddling) forehand(pose.swing);
   }
 
-  /* ---- pickleball forehand, on top of the idle clip ----
-   * Root space: +Z is his front, -X his right. One rally every SWING_S: the
-   * ball arcs in, he turns back, swings through it at waist height and follows
-   * through across his body, and the ball flies back out. */
-  const SWING_S = 1.6;
+  /* ---- pickleball forehand at the big ball, on top of the clips ----
+   * Root space: +Z is his front, -X his right. The brain plants him with the
+   * ball at his front-right and hands over swing progress (contact at 0.55):
+   * turn back, swing through at waist height, follow through across the body.
+   * With the paddle out but no swing yet (running in), he holds it ready. */
   const KEYS: readonly (readonly [number, Vector3, number])[] = [
-    // [phase, upper-arm direction, chest twist (rad, - = turned to his right)]
-    [0.0, new Vector3(-0.35, -0.75, 0.55), 0],      // ready
-    [0.4, new Vector3(-0.8, -0.6, -0.35), -0.45],  // backswing, waist height
-    [0.55, new Vector3(-0.55, -0.35, 0.75), -0.1],  // contact
-    [0.72, new Vector3(0.55, 0.15, 0.6), 0.35],     // follow-through
-    [1.0, new Vector3(-0.35, -0.75, 0.55), 0],      // back to ready
+    // [progress, upper-arm direction, chest twist (rad, - = turned to his right)]
+    // A low drive: the big ball's centre is below his waist, so the arm
+    // swings down and through it rather than across the chest.
+    // The paddle sweeps round from his right: at contact it points out to his
+    // right-front with the face square to the ball (front-right of him).
+    [0.0, new Vector3(-0.3, -0.9, 0.25), 0],        // ready, paddle low at his side
+    [0.4, new Vector3(-0.6, -0.6, -0.5), -0.45],    // backswing
+    [0.55, new Vector3(-0.55, -0.7, 0.35), -0.05],  // contact
+    [0.72, new Vector3(0.2, -0.25, 0.8), 0.35],     // follow-through, low to high
+    [1.0, new Vector3(-0.3, -0.9, 0.25), 0],        // back to ready
   ];
-  const CONTACT = 0.55;
-  const BALL_IN = new Vector3(-1.7, 1.9, 4.5), BALL_OUT = new Vector3(0.9, 2.4, 6.5);
-  const contactAt = new Vector3(-0.95, 1.25, 0.95);  // refined from the paddle each swing
-  const upperDir = new Vector3(), foreDir = new Vector3(), tmpC = new Vector3();
-  const UP = new Vector3(0, 1, 0), FORE_BEND = new Vector3(0, 0.35, 0.45);
+  const upperDir = new Vector3(), foreDir = new Vector3(), faceN = new Vector3(), side = new Vector3();
+  const UP = new Vector3(0, 1, 0), FWD = new Vector3(0, 0, 1), FORE_BEND = new Vector3(0, 0.2, 0.2);
+  const basis = new Matrix4();
+  const GRIP_AT = 0.09;  // the hand closes this far up the handle from the butt
   const ease = (t: number): number => t * t * (3 - 2 * t);
 
   function twist(b: Object3D, angle: number): void {
@@ -208,32 +198,30 @@ export async function loadModelCharacter(url = MODEL_URL): Promise<Character> {
     b.quaternion.copy(parentQ.invert().multiply(qa.multiply(qb)));
   }
 
-  function swing(now: number): void {
-    const u = ((now / 1000) % SWING_S) / SWING_S;
+  function forehand(u: number): void {
     let i = 0;
     while (i < KEYS.length - 2 && u >= KEYS[i + 1]![0]) i++;
     const [u0, d0, t0] = KEYS[i]!, [u1, d1, t1] = KEYS[i + 1]!;
-    const f = ease((u - u0) / (u1 - u0));
+    const f = ease(Math.min(1, Math.max(0, (u - u0) / (u1 - u0))));
     upperDir.copy(d0).lerp(d1, f).normalize();
-    twist(chest, t0 + (t1 - t0) * f);
+    if (u > 0) twist(chest, t0 + (t1 - t0) * f);
     aim(rArm, rFore, upperDir);
     foreDir.copy(upperDir).add(FORE_BEND).normalize();
     aim(rFore, rHand, foreDir);
 
+    // Paddle: handle continues the forearm through the fist; the face stands
+    // upright and looks forward (toward the ball), like a real forehand.
     root.updateMatrixWorld(true);
     rHand.getWorldPosition(tmpA);
     root.worldToLocal(tmpA);
-    paddle.position.copy(tmpA);
-    paddle.quaternion.setFromUnitVectors(UP, foreDir);  // grip along the forearm, blade beyond the hand
-    if (Math.abs(u - CONTACT) < 0.02) tmpC.copy(foreDir).multiplyScalar(0.4).add(tmpA), contactAt.lerp(tmpC, 0.5);
-
-    // Ball: in on an arc to the contact point, then back out.
-    const into = u < CONTACT;
-    const s = into ? u / CONTACT : (u - CONTACT) / (1 - CONTACT);
-    if (into) pball.position.copy(BALL_IN).lerp(contactAt, s);
-    else pball.position.copy(contactAt).lerp(BALL_OUT, s);
-    pball.position.y += Math.sin(Math.PI * s) * (into ? 0.7 : 1.1);
-    pball.visible = s < 0.92 || into;
+    faceN.crossVectors(foreDir, UP);
+    if (faceN.lengthSq() < 1e-4) faceN.copy(FWD);
+    faceN.normalize();
+    if (faceN.dot(FWD) < 0) faceN.negate();
+    side.crossVectors(foreDir, faceN).normalize();
+    basis.makeBasis(side, foreDir, faceN);
+    paddle.quaternion.setFromRotationMatrix(basis);
+    paddle.position.copy(tmpA).addScaledVector(foreDir, -GRIP_AT * PADDLE_SCALE);
   }
 
   return {

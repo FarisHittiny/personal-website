@@ -32,7 +32,6 @@ import {
   GridHelper,
   Group,
   HemisphereLight,
-  IcosahedronGeometry,
   Material,
   Mesh,
   MeshBasicMaterial,
@@ -47,6 +46,7 @@ import {
   PointsMaterial,
   Raycaster,
   Scene,
+  SphereGeometry,
   Sprite,
   SpriteMaterial,
   SRGBColorSpace,
@@ -74,7 +74,8 @@ const LAMP_INTENSITY = 45;
 const LAMP_DECAY = 1.1;
 const DISC_EMISSIVE_BASE = 0.004;
 const DISC_EMISSIVE_GLOW = 0.8;
-const CORE_EMISSIVE = 0.04;      // was 0.42 on the glowing wireframe ball; now a real ball, barely lit
+const CORE_EMISSIVE = 0.03;      // was 0.42 on the glowing wireframe ball; now matte, barely lit
+const BALL_COLOUR = 0xe6eaf4;    // soft white with a hint of the stage blue
 
 /* ---- pad labels ----
  * Which line of the pad label is drawn large. "topic" (Faris's pick): big
@@ -128,43 +129,6 @@ function drawLabel(c: HTMLCanvasElement, num: string, topic: string): void {
     x.fillStyle = s.color;
     x.fillText(text, LABEL_W / 2, s.y);
   }
-}
-
-/** A soccer ball without a texture: a finely subdivided sphere whose vertices
- *  take the colour of the nearest truncated-icosahedron face (12 black
- *  pentagons at the icosahedron's vertices, 20 white hexagons at its face
- *  centres), with a thin dark seam where two faces meet. */
-function soccerBallGeometry(r: number): BufferGeometry {
-  const base = new IcosahedronGeometry(1, 0).getAttribute("position");
-  const centres: { v: Vector3; pent: boolean }[] = [];
-  const seen: Vector3[] = [];
-  for (let i = 0; i < base.count; i++) {
-    const v = new Vector3().fromBufferAttribute(base, i).normalize();
-    if (!seen.some((s) => s.distanceToSquared(v) < 1e-6)) { seen.push(v); centres.push({ v, pent: true }); }
-  }
-  for (let i = 0; i < base.count; i += 3) {
-    const c = new Vector3().fromBufferAttribute(base, i)
-      .add(new Vector3().fromBufferAttribute(base, i + 1))
-      .add(new Vector3().fromBufferAttribute(base, i + 2)).normalize();
-    centres.push({ v: c, pent: false });
-  }
-  const g = new IcosahedronGeometry(r, 24);
-  const pos = g.getAttribute("position");
-  const col = new Float32Array(pos.count * 3);
-  const n = new Vector3();
-  const WHITE = new Color(0xf2f3f5), BLACK = new Color(0x15171c), SEAM = new Color(0x4a4f5c);
-  for (let i = 0; i < pos.count; i++) {
-    n.fromBufferAttribute(pos, i).normalize();
-    let d1 = -2, d2 = -2, best = centres[0]!;
-    for (const c of centres) {
-      const d = n.dot(c.v);
-      if (d > d1) { d2 = d1; d1 = d; best = c; } else if (d > d2) d2 = d;
-    }
-    const k = d1 - d2 < 0.012 ? SEAM : best.pent ? BLACK : WHITE;
-    col.set([k.r, k.g, k.b], i * 3);
-  }
-  g.setAttribute("color", new Float32BufferAttribute(col, 3));
-  return g;
 }
 
 /** Throws if the renderer cannot be created. */
@@ -250,8 +214,10 @@ export function startScene(opts: SceneOptions): FloorScene {
 
   /* ---- ball and lamp ---- */
   const ball = new Group();
-  const core = new Mesh(soccerBallGeometry(R), new MeshStandardMaterial({
-    vertexColors: true, roughness: 0.55, emissive: ACC, emissiveIntensity: CORE_EMISSIVE }));
+  // A clean matte ball (Faris, Nov 2026): no pattern, no glow; the lamp
+  // underneath still pools blue light on the floor around it.
+  const core = new Mesh(new SphereGeometry(R, 48, 32), new MeshStandardMaterial({
+    color: BALL_COLOUR, roughness: 0.82, metalness: 0, emissive: ACC, emissiveIntensity: CORE_EMISSIVE }));
   ball.add(core);
   ball.position.set(BALL_START.x, R, BALL_START.z);
   scene.add(ball);
