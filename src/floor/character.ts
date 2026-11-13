@@ -6,6 +6,7 @@
  *  root.position.x/z and root.rotation.y; everything here animates children. */
 
 import {
+  CanvasTexture,
   CircleGeometry,
   CylinderGeometry,
   ExtrudeGeometry,
@@ -16,6 +17,7 @@ import {
   MeshStandardMaterial,
   Shape,
   SphereGeometry,
+  SRGBColorSpace,
   type BufferGeometry,
   type Material,
   type Object3D,
@@ -52,39 +54,87 @@ export function buildPaddle(
   geo: <G extends BufferGeometry>(g: G) => G,
   own: <M extends Material>(m: M) => M,
 ): Group {
+  /* Life size at this scene's scale (about 1.57 units per metre): an
+   * 11.5 x 7.5 in face that narrows into the throat, a 5.5 in octagonal
+   * handle with wrap lines, a black edge guard, and a graphite carbon face
+   * with a blue trim band. */
   const g = new Group();
-  const W = 0.29, H = 0.4, Y0 = 0.2, RT = 0.07, RB = 0.035;
-  const outline = (w: number, h: number, rt: number, rb: number): Shape => {
+  const W = 0.3, H = 0.44, Y0 = 0.22, THROAT = 0.075;
+  const outline = (w: number, h: number, inset = 0): Shape => {
     const s = new Shape();
-    s.moveTo(-w / 2 + rb, 0);
-    s.lineTo(w / 2 - rb, 0);
-    s.quadraticCurveTo(w / 2, 0, w / 2, rb);
-    s.lineTo(w / 2, h - rt);
-    s.quadraticCurveTo(w / 2, h, w / 2 - rt, h);
-    s.lineTo(-w / 2 + rt, h);
-    s.quadraticCurveTo(-w / 2, h, -w / 2, h - rt);
-    s.lineTo(-w / 2, rb);
-    s.quadraticCurveTo(-w / 2, 0, -w / 2 + rb, 0);
+    const hw = w / 2, tw = THROAT / 2 + inset, r = 0.09 + inset;
+    s.moveTo(-tw, -inset);
+    s.lineTo(tw, -inset);
+    s.bezierCurveTo(hw * 0.55, 0.02, hw, 0.05, hw, 0.12);       // throat flares out
+    s.lineTo(hw, h - r);
+    s.quadraticCurveTo(hw, h, hw - r, h);
+    s.lineTo(-hw + r, h);
+    s.quadraticCurveTo(-hw, h, -hw, h - r);
+    s.lineTo(-hw, 0.12);
+    s.bezierCurveTo(-hw, 0.05, -hw * 0.55, 0.02, -tw, -inset);
     return s;
   };
-  const face = new Mesh(geo(new ExtrudeGeometry(outline(W, H, RT, RB), {
-    depth: 0.018, bevelEnabled: true, bevelThickness: 0.004, bevelSize: 0.004, bevelSegments: 2, curveSegments: 10,
-  })), own(new MeshStandardMaterial({ color: PADDLE_FACE, roughness: 0.42 })));
-  face.position.set(0, Y0, -0.009);
-  const guard = new Mesh(geo(new ExtrudeGeometry(outline(W + 0.024, H + 0.02, RT + 0.01, RB + 0.01), {
-    depth: 0.012, bevelEnabled: false, curveSegments: 10,
-  })), own(new MeshStandardMaterial({ color: PADDLE_EDGE, roughness: 0.6 })));
-  guard.position.set(0, Y0 - 0.01, -0.006);
-  const grip = new Mesh(geo(new CylinderGeometry(0.027, 0.031, Y0 + 0.02, 14)),
-    own(new MeshStandardMaterial({ color: PADDLE_GRIP, roughness: 0.9 })));
-  grip.position.y = (Y0 + 0.02) / 2;
-  const cap = new Mesh(geo(new CylinderGeometry(0.036, 0.036, 0.018, 14)),
-    own(new MeshStandardMaterial({ color: PADDLE_CAP, roughness: 0.5 })));
-  cap.position.y = 0.009;
+  const faceTex = paddleFaceTexture();
+  faceTex.repeat.set(1 / W, 1 / H);
+  faceTex.offset.set(0.5, 0);
+  const face = new Mesh(geo(new ExtrudeGeometry(outline(W, H), {
+    depth: 0.014, bevelEnabled: true, bevelThickness: 0.003, bevelSize: 0.003, bevelSegments: 2, curveSegments: 14,
+  })), own(new MeshStandardMaterial({ map: faceTex, roughness: 0.55, metalness: 0.1 })));
+  face.position.set(0, Y0, -0.007);
+  const guard = new Mesh(geo(new ExtrudeGeometry(outline(W + 0.016, H + 0.008, 0.008), {
+    depth: 0.01, bevelEnabled: false, curveSegments: 14,
+  })), own(new MeshStandardMaterial({ color: PADDLE_EDGE, roughness: 0.7 })));
+  guard.position.set(0, Y0 - 0.004, -0.005);   // thinner than the face: shows only as the rim
+  const gripMat = own(new MeshStandardMaterial({ color: PADDLE_GRIP, roughness: 0.95 }));
+  const grip = new Mesh(geo(new CylinderGeometry(0.021, 0.024, Y0 + 0.01, 8)), gripMat);
+  grip.position.y = (Y0 + 0.01) / 2;
+  const wrapMat = own(new MeshStandardMaterial({ color: PADDLE_WRAP, roughness: 0.9 }));
+  const wrapGeo = geo(new CylinderGeometry(0.0245, 0.0245, 0.005, 8));
+  for (let i = 0; i < 5; i++) {
+    const w = new Mesh(wrapGeo, wrapMat);
+    w.position.y = 0.04 + i * 0.035;
+    w.rotation.z = 0.12;                                          // spiral tape, slightly slanted
+    g.add(w);
+  }
+  const cap = new Mesh(geo(new CylinderGeometry(0.03, 0.027, 0.02, 8)),
+    own(new MeshStandardMaterial({ color: PADDLE_EDGE, roughness: 0.6 })));
+  cap.position.y = 0.01;
   g.add(guard, face, grip, cap);
   return g;
 }
-const PADDLE_FACE = 0x6c8cff, PADDLE_EDGE = 0x1b1f2a, PADDLE_GRIP = 0x15171c, PADDLE_CAP = 0xd9dde8;
+const PADDLE_EDGE = 0x0d0f14, PADDLE_GRIP = 0x1a1d24, PADDLE_WRAP = 0x3a4256;
+
+/** Graphite face: a fine carbon twill, a blue trim band near the top and a
+ *  thin blue inner line. Drawn once per paddle (two paddles at most). */
+function paddleFaceTexture(): CanvasTexture {
+  const c = document.createElement("canvas");
+  c.width = 256; c.height = 384;
+  const x = c.getContext("2d")!;
+  x.fillStyle = "#2a2f3b";
+  x.fillRect(0, 0, 256, 384);
+  x.strokeStyle = "rgba(255,255,255,0.045)";
+  x.lineWidth = 2;
+  for (let i = -384; i < 256; i += 7) {                         // carbon twill
+    x.beginPath(); x.moveTo(i, 384); x.lineTo(i + 384, 0); x.stroke();
+  }
+  x.strokeStyle = "rgba(0,0,0,0.18)";
+  for (let i = 0; i < 640; i += 7) {
+    x.beginPath(); x.moveTo(i, 384); x.lineTo(i - 384, 0); x.stroke();
+  }
+  x.fillStyle = "#6c8cff";                                       // trim band (canvas y=0 is the top of the face)
+  x.fillRect(0, 70, 256, 16);
+  x.fillStyle = "rgba(108,140,255,0.55)";
+  x.fillRect(0, 92, 256, 4);
+  x.strokeStyle = "rgba(108,140,255,0.6)";                     // inner line
+  x.lineWidth = 3;
+  x.beginPath();
+  x.roundRect(14, 14, 228, 356, 34);
+  x.stroke();
+  const t = new CanvasTexture(c);
+  t.colorSpace = SRGBColorSpace;
+  t.flipY = true;
+  return t;
+}
 
 /* [x, y, z, radius] for each curl of hair. */
 const CURLS: readonly (readonly [number, number, number, number])[] = [
@@ -140,7 +190,7 @@ export function createStandInCharacter(): Character {
   /* Pickleball paddle, in his right hand when he goes to hit the ball. The
    * arm hangs along -Y, so the paddle is flipped to continue past the hand. */
   const paddle = buildPaddle(geo, own);
-  paddle.position.y = -0.56;
+  paddle.position.y = -0.52;
   paddle.rotation.x = Math.PI;
   paddle.visible = false;
   armR.add(paddle);

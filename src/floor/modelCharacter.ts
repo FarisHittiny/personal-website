@@ -45,7 +45,7 @@ const RUN_FROM = 2.8;         // above this speed he runs instead of walks
 const IDLE_BELOW = 0.25;
 const FADE = 0.18;            // s, cross-fade between locomotion clips
 const STRIKE_FROM = 0.32;     // s into "Strike Forward Jog" where the brain's 0.55 s strike starts
-const PADDLE_SCALE = 1.2;     // a touch over life size, so it reads at floor scale
+const PADDLE_SCALE = 1;       // life size; buildPaddle is already at scene scale
 
 export async function loadModelCharacter(url = MODEL_URL): Promise<Character> {
   const gltf = await new GLTFLoader().setMeshoptDecoder(MeshoptDecoder).loadAsync(url);
@@ -110,6 +110,7 @@ export async function loadModelCharacter(url = MODEL_URL): Promise<Character> {
   const rArm = bone("mixamorigRightArm"), rFore = bone("mixamorigRightForeArm"), rHand = bone("mixamorigRightHand");
   const chest = bone("mixamorigSpine2");
   const lHand = bone("mixamorigLeftHand"), head = bone("mixamorigHead"), rFoot = bone("mixamorigRightFoot");
+  const rFinger = bone("mixamorigRightHandMiddle1");
 
   /* Props for two activities: a small ball for juggling, a phone for texting. */
   const jball = new Mesh(geo(new SphereGeometry(0.16, 24, 16)),
@@ -236,7 +237,9 @@ export async function loadModelCharacter(url = MODEL_URL): Promise<Character> {
   const upperDir = new Vector3(), foreDir = new Vector3(), faceN = new Vector3(), side = new Vector3();
   const UP = new Vector3(0, 1, 0), FWD = new Vector3(0, 0, 1), FORE_BEND = new Vector3(0, 0.2, 0.2);
   const basis = new Matrix4();
-  const GRIP_AT = 0.09;  // the hand closes this far up the handle from the butt
+  const GRIP_AT = 0.1;   // the fist closes round the handle this far up from the butt
+  const COCK = 0.7;      // wrist cock: the paddle head tilts up out of the fist, not along the forearm
+  const handDir = new Vector3(), palm = new Vector3(), axis = new Vector3();
   const ease = (t: number): number => t * t * (3 - 2 * t);
 
   function twist(b: Object3D, angle: number): void {
@@ -259,19 +262,24 @@ export async function loadModelCharacter(url = MODEL_URL): Promise<Character> {
     foreDir.copy(upperDir).add(FORE_BEND).normalize();
     aim(rFore, rHand, foreDir);
 
-    // Paddle: handle continues the forearm through the fist; the face stands
-    // upright and looks forward (toward the ball), like a real forehand.
+    // Paddle: the handle runs through the fist (palm centre) and leaves it
+    // tilted up by the wrist cock, so the head sits above the hand like a real
+    // grip; the face stands square and looks forward (toward the ball).
     root.updateMatrixWorld(true);
-    rHand.getWorldPosition(tmpA);
-    root.worldToLocal(tmpA);
-    faceN.crossVectors(foreDir, UP);
+    rHand.getWorldPosition(tmpA); root.worldToLocal(tmpA);
+    rFinger.getWorldPosition(tmpB); root.worldToLocal(tmpB);
+    handDir.copy(tmpB).sub(tmpA).normalize();
+    palm.copy(tmpA).lerp(tmpB, 0.6);
+    axis.copy(handDir).addScaledVector(UP, COCK).normalize();
+    faceN.crossVectors(axis, UP);
     if (faceN.lengthSq() < 1e-4) faceN.copy(FWD);
     faceN.normalize();
     if (faceN.dot(FWD) < 0) faceN.negate();
-    side.crossVectors(foreDir, faceN).normalize();
-    basis.makeBasis(side, foreDir, faceN);
+    side.crossVectors(axis, faceN).normalize();
+    faceN.crossVectors(side, axis).normalize();
+    basis.makeBasis(side, axis, faceN);
     paddle.quaternion.setFromRotationMatrix(basis);
-    paddle.position.copy(tmpA).addScaledVector(foreDir, -GRIP_AT * PADDLE_SCALE);
+    paddle.position.copy(palm).addScaledVector(axis, -GRIP_AT * PADDLE_SCALE);
   }
 
   return {
