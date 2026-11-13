@@ -1,15 +1,15 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32">
-  <!-- Rounded blue badge, FH in the stage colour at the center. No background
-       rect — the tab's own color shows around the badge. Glyphs are rects, not
-       <text>, so they render identically regardless of the viewer's fonts.
-       Colors are the accent and stage tokens from src/styles/tokens.css. -->
-  <rect x="1" y="1" width="30" height="30" rx="9" fill="#6C8CFF"/>
-  <g fill="#0B0C10">
-    <rect x="10.2" y="9.6" width="2.25" height="13.2"/>
-    <rect x="10.2" y="9.6" width="5.55" height="2.25"/>
-    <rect x="10.2" y="15.08" width="4.44" height="2.25"/>
-    <rect x="14.56" y="9.6" width="2.25" height="13.2"/>
-    <rect x="17.61" y="9.6" width="2.25" height="13.2"/>
-    <rect x="14.56" y="15.08" width="4.99" height="2.25"/>
+  <!-- FH monogram: white letters on the stage colour, thin accent edge.
+       Glyphs are rects, not <text>, so they render identically without fonts.
+       Colours: --stage #0B0C10, --accent #6C8CFF (src/styles/tokens.css). -->
+  <rect width="32" height="32" rx="8" fill="#0B0C10"/>
+  <rect x="0.75" y="0.75" width="30.5" height="30.5" rx="7.4" fill="none" stroke="#6C8CFF" stroke-opacity=".55" stroke-width="1.5"/>
+  <g fill="#F2F4FA">
+    <rect x="7.5" y="8" width="3" height="16"/>
+    <rect x="7.5" y="8" width="8" height="3"/>
+    <rect x="7.5" y="14.5" width="6.5" height="3"/>
+    <rect x="17.5" y="8" width="3" height="16"/>
+    <rect x="21.5" y="8" width="3" height="16"/>
+    <rect x="17.5" y="14.5" width="7" height="3"/>
   </g>
 </svg>
