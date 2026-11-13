@@ -29,6 +29,7 @@ import {
   DirectionalLight,
   Float32BufferAttribute,
   Fog,
+  GridHelper,
   Group,
   HemisphereLight,
   IcosahedronGeometry,
@@ -44,7 +45,6 @@ import {
   PointLight,
   Points,
   PointsMaterial,
-  RepeatWrapping,
   Raycaster,
   Scene,
   Sprite,
@@ -75,7 +75,6 @@ const LAMP_DECAY = 1.1;
 const DISC_EMISSIVE_BASE = 0.004;
 const DISC_EMISSIVE_GLOW = 0.8;
 const CORE_EMISSIVE = 0.04;      // was 0.42 on the glowing wireframe ball; now a real ball, barely lit
-const GROUND_TILE = 4;           // world units per pattern tile
 
 /* ---- pad labels ----
  * Which line of the pad label is drawn large. "topic" (Faris's pick): big
@@ -168,71 +167,6 @@ function soccerBallGeometry(r: number): BufferGeometry {
   return g;
 }
 
-/** One tile of the floor pattern: an eight-pointed star (khatam, two squares
- *  at 45°) inside an octagon, joined to its neighbours by a Damascene lattice
- *  of crossing bands; quarter stars sit on the corners so tiles join up. Thin
- *  lines in the stage's blue, faint on the ground colour. Drawn once. */
-function groundTile(): CanvasTexture {
-  const S = 512;
-  const c = document.createElement("canvas");
-  c.width = c.height = S;
-  const x = c.getContext("2d")!;
-  x.fillStyle = "#0f121a";
-  x.fillRect(0, 0, S, S);
-  x.lineCap = "round";
-  x.lineJoin = "round";
-  const star = (cx: number, cy: number, r: number): void => {
-    for (const rot of [0, Math.PI / 4]) {
-      x.beginPath();
-      for (let i = 0; i < 4; i++) {
-        const a = rot + Math.PI / 4 + (i * Math.PI) / 2;
-        const px = cx + Math.cos(a) * r, py = cy + Math.sin(a) * r;
-        if (i === 0) x.moveTo(px, py); else x.lineTo(px, py);
-      }
-      x.closePath();
-      x.stroke();
-    }
-  };
-  const octagon = (cx: number, cy: number, r: number): void => {
-    x.beginPath();
-    for (let i = 0; i < 8; i++) {
-      const a = Math.PI / 8 + (i * Math.PI) / 4;
-      const px = cx + Math.cos(a) * r, py = cy + Math.sin(a) * r;
-      if (i === 0) x.moveTo(px, py); else x.lineTo(px, py);
-    }
-    x.closePath();
-    x.stroke();
-  };
-  x.strokeStyle = "rgba(76, 98, 170, 0.2)";
-  x.lineWidth = 3;
-  const h = S / 2;
-  // centre and corner stars (corners are shared with the neighbouring tiles)
-  for (const [cx, cy] of [[h, h], [0, 0], [S, 0], [0, S], [S, S]] as const) {
-    star(cx, cy, S * 0.2);
-    octagon(cx, cy, S * 0.27);
-  }
-  // Damascene lattice: bands from the centre octagon out to the tile edges,
-  // meeting the next tile's bands, and the diagonals between the stars
-  x.strokeStyle = "rgba(76, 98, 170, 0.11)";
-  x.lineWidth = 2;
-  x.beginPath();
-  for (const [ax, ay, bx, by] of [
-    [h, h - S * 0.27, h, 0], [h, h + S * 0.27, h, S], [h - S * 0.27, h, 0, h], [h + S * 0.27, h, S, h],
-  ] as const) { x.moveTo(ax, ay); x.lineTo(bx, by); }
-  x.stroke();
-  x.beginPath();
-  for (const [sx, sy] of [[0, 0], [S, 0], [0, S], [S, S]] as const) {
-    const dx = h - sx, dy = h - sy, l = Math.hypot(dx, dy);
-    x.moveTo(sx + (dx / l) * S * 0.27, sy + (dy / l) * S * 0.27);
-    x.lineTo(h - (dx / l) * S * 0.27, h - (dy / l) * S * 0.27);
-  }
-  x.stroke();
-  const tex = new CanvasTexture(c);
-  tex.colorSpace = SRGBColorSpace;
-  tex.wrapS = tex.wrapT = RepeatWrapping;
-  return tex;
-}
-
 /** Throws if the renderer cannot be created. */
 export function startScene(opts: SceneOptions): FloorScene {
   const { host, canvas, reducedMotion } = opts;
@@ -252,16 +186,14 @@ export function startScene(opts: SceneOptions): FloorScene {
   sun.position.set(6, 12, 9);
   scene.add(sun);
 
-  // Ground: the old blue grid is now a faint Levantine tile (khatam star in a
-  // Damascene lattice, see groundTile). The texture carries the ground colour,
-  // so the material colour is white and the lit result matches the old 0x0f121a.
-  const groundTex = groundTile();
-  groundTex.repeat.set(140 / GROUND_TILE, 140 / GROUND_TILE);
-  groundTex.anisotropy = Math.min(8, renderer.capabilities.getMaxAnisotropy());
+  // Plain ground and a soft grid (the Nov 2026 tile pattern was removed).
   const ground = new Mesh(new PlaneGeometry(140, 140),
-    new MeshLambertMaterial({ color: 0xffffff, map: groundTex }));
+    new MeshLambertMaterial({ color: 0x0f121a }));
   ground.rotation.x = -Math.PI / 2;
   scene.add(ground);
+  const grid = new GridHelper(140, 70, 0x222b47, 0x141a2b);
+  grid.position.y = 0.01;
+  scene.add(grid);
 
   const sg = new BufferGeometry();
   const sp: number[] = [];
