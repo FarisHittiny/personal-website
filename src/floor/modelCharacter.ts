@@ -189,6 +189,7 @@ export async function loadModelCharacter(url = MODEL_URL): Promise<Character> {
 
     paddle.visible = pose.paddling;
     if (pose.paddling) forehand(pose.swing);
+    else curlFingers(false);
     props();
   }
 
@@ -234,12 +235,18 @@ export async function loadModelCharacter(url = MODEL_URL): Promise<Character> {
     [0.72, new Vector3(0.2, -0.25, 0.8), 0.35],     // follow-through, low to high
     [1.0, new Vector3(-0.3, -0.9, 0.25), 0],        // back to ready
   ];
-  const upperDir = new Vector3(), foreDir = new Vector3(), faceN = new Vector3(), side = new Vector3();
-  const UP = new Vector3(0, 1, 0), FWD = new Vector3(0, 0, 1), FORE_BEND = new Vector3(0, 0.2, 0.2);
+  const upperDir = new Vector3(), foreDir = new Vector3(), side = new Vector3();
+  const UP = new Vector3(0, 1, 0), FORE_BEND = new Vector3(0, 0.2, 0.2);
   const basis = new Matrix4();
-  const GRIP_AT = 0.1;   // the fist closes round the handle this far up from the butt
-  const COCK = 0.7;      // wrist cock: the paddle head tilts up out of the fist, not along the forearm
-  const handDir = new Vector3(), palm = new Vector3(), axis = new Vector3();
+  const GRIP_AT = 0.07;     // the fist closes round the handle this far up from the butt
+  const GRIP_ANGLE = 0.45;  // the handle runs thumb-ward, tilted this much toward the fingers
+  const GRIP_ALONG = 0.95;  // the handle crosses the palm at the knuckles (fraction of hand-to-knuckle)
+  const GRIP_OUT = 0.03;    // and sits this far out from the palm, inside the curled fingers
+  const X_AXIS = new Vector3(1, 0, 0);
+  const THUMB_HINT = new Vector3(-1, 0.6, 0).normalize();  // up and to his right (root space)
+  const qc = new Quaternion();
+  const palm = new Vector3(), axis = new Vector3();
+  const fingerDir = new Vector3(), palmN = new Vector3(), thumbDir = new Vector3();
   const ease = (t: number): number => t * t * (3 - 2 * t);
 
   function twist(b: Object3D, angle: number): void {
@@ -262,24 +269,68 @@ export async function loadModelCharacter(url = MODEL_URL): Promise<Character> {
     foreDir.copy(upperDir).add(FORE_BEND).normalize();
     aim(rFore, rHand, foreDir);
 
-    // Paddle: the handle runs through the fist (palm centre) and leaves it
-    // tilted up by the wrist cock, so the head sits above the hand like a real
-    // grip; the face stands square and looks forward (toward the ball).
+    // Hand: a handshake grip. The hand carries on from the forearm with the
+    // thumb kept up and out to his right, so the palm (and the paddle face,
+    // parallel to it) looks forward at the ball and the head never drops.
+    root.updateMatrixWorld(true);
+    fingerDir.copy(foreDir);
+    thumbDir.copy(THUMB_HINT).addScaledVector(fingerDir, -THUMB_HINT.dot(fingerDir)).normalize();
+    palmN.crossVectors(thumbDir, fingerDir).normalize();
+    // hand-local axes: +X toward the thumb, +Y along the fingers, +Z out of the palm
+    basis.makeBasis(thumbDir, fingerDir, palmN);
+    qa.setFromRotationMatrix(basis);                               // root space
+    root.getWorldQuaternion(qb).multiply(qa);                      // world
+    rHand.parent!.getWorldQuaternion(qc);
+    rHand.quaternion.copy(qc.invert().multiply(qb));
+    curlFingers(true);
+
+    // Paddle: the handle lies diagonally across the palm, inside the curled
+    // fingers, and leaves the fist between thumb and index; the butt sticks
+    // out under the little finger.
     root.updateMatrixWorld(true);
     rHand.getWorldPosition(tmpA); root.worldToLocal(tmpA);
     rFinger.getWorldPosition(tmpB); root.worldToLocal(tmpB);
-    handDir.copy(tmpB).sub(tmpA).normalize();
-    palm.copy(tmpA).lerp(tmpB, 0.6);
-    axis.copy(handDir).addScaledVector(UP, COCK).normalize();
-    faceN.crossVectors(axis, UP);
-    if (faceN.lengthSq() < 1e-4) faceN.copy(FWD);
-    faceN.normalize();
-    if (faceN.dot(FWD) < 0) faceN.negate();
-    side.crossVectors(axis, faceN).normalize();
-    faceN.crossVectors(side, axis).normalize();
-    basis.makeBasis(side, axis, faceN);
+    const knuckle = tmpA.distanceTo(tmpB);
+    axis.copy(thumbDir).addScaledVector(fingerDir, GRIP_ANGLE).normalize();
+    palm.copy(tmpA)
+      .addScaledVector(fingerDir, knuckle * GRIP_ALONG)
+      .addScaledVector(palmN, GRIP_OUT);
+    side.crossVectors(axis, palmN).normalize();
+    basis.makeBasis(side, axis, palmN);
     paddle.quaternion.setFromRotationMatrix(basis);
     paddle.position.copy(palm).addScaledVector(axis, -GRIP_AT * PADDLE_SCALE);
+  }
+
+  /* The clips leave the fingers at the bind pose (open hand). While he holds
+   * the paddle they close round the handle: each joint bends about its local
+   * X axis (positive closes toward the palm). */
+  const CURL: readonly (readonly [string, number])[] = [
+    ["Index1", 1.25], ["Index2", 1.45], ["Index3", 0.9],
+    ["Middle1", 1.3], ["Middle2", 1.5], ["Middle3", 0.9],
+    ["Ring1", 1.35], ["Ring2", 1.5], ["Ring3", 0.9],
+    ["Pinky1", 1.4], ["Pinky2", 1.4], ["Pinky3", 0.9],
+    ["Thumb1", 0.3], ["Thumb2", 0.7], ["Thumb3", 0.7],
+  ];
+  // The thumb's joints sit at an angle to the hand, so its bend axis is worked
+  // out from the bind pose: it folds across the front of the fist, toward the
+  // palm and the little finger (hand-local +Z and -X).
+  const THUMB_TO = new Vector3(-0.6, 0, 1).normalize();
+  const thumbChain = new Quaternion();
+  const fingers = CURL.map(([n, a]) => {
+    const b = bone(`mixamorigRightHand${n}`);
+    let ax = X_AXIS;
+    if (n.startsWith("Thumb")) {
+      thumbChain.multiply(b.quaternion);                              // hand -> this joint, at rest
+      const to = THUMB_TO.clone().applyQuaternion(thumbChain.clone().invert());
+      ax = new Vector3(0, 1, 0).cross(to).normalize();
+    }
+    return { b, rest: b.quaternion.clone(), bent: b.quaternion.clone().multiply(new Quaternion().setFromAxisAngle(ax, a)) };
+  });
+  let curled = false;
+  function curlFingers(on: boolean): void {
+    if (on === curled) return;
+    curled = on;
+    for (const f of fingers) f.b.quaternion.copy(on ? f.bent : f.rest);
   }
 
   return {

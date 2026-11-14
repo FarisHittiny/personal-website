@@ -86,17 +86,17 @@ export function buildPaddle(
   })), own(new MeshStandardMaterial({ color: PADDLE_EDGE, roughness: 0.7 })));
   guard.position.set(0, Y0 - 0.004, -0.005);   // thinner than the face: shows only as the rim
   const gripMat = own(new MeshStandardMaterial({ color: PADDLE_GRIP, roughness: 0.95 }));
-  const grip = new Mesh(geo(new CylinderGeometry(0.021, 0.024, Y0 + 0.01, 8)), gripMat);
+  const grip = new Mesh(geo(new CylinderGeometry(0.029, 0.031, Y0 + 0.01, 8)), gripMat);
   grip.position.y = (Y0 + 0.01) / 2;
   const wrapMat = own(new MeshStandardMaterial({ color: PADDLE_WRAP, roughness: 0.9 }));
-  const wrapGeo = geo(new CylinderGeometry(0.0245, 0.0245, 0.005, 8));
+  const wrapGeo = geo(new CylinderGeometry(0.032, 0.032, 0.005, 8));
   for (let i = 0; i < 5; i++) {
     const w = new Mesh(wrapGeo, wrapMat);
     w.position.y = 0.04 + i * 0.035;
     w.rotation.z = 0.12;                                          // spiral tape, slightly slanted
     g.add(w);
   }
-  const cap = new Mesh(geo(new CylinderGeometry(0.03, 0.027, 0.02, 8)),
+  const cap = new Mesh(geo(new CylinderGeometry(0.038, 0.034, 0.02, 8)),
     own(new MeshStandardMaterial({ color: PADDLE_EDGE, roughness: 0.6 })));
   cap.position.y = 0.01;
   g.add(guard, face, grip, cap);
