@@ -39,7 +39,7 @@ function makeWorld(seed = 1) {
     npc: null,
   };
   w.npc = createNpc(PADS, w.now, mulberry32(seed));
-  w.out = { x: -3.5, z: -3.5, facing: 0, pose: { state: "idle", speed: 0, kick: 0, paddling: false }, kick: null };
+  w.out = { x: -3.5, z: -3.5, facing: 0, pose: { state: "idle", speed: 0, kick: 0, paddling: false, swing: 0, activity: null }, kick: null };
 
   /** Visitor input: a held key direction, or a click target. */
   w.hold = (x, z) => { w.keys = { x, z }; if (x || z) { w.lastInputAt = w.now; w.npc.userTookBall(); } };
@@ -75,7 +75,8 @@ function makeWorld(seed = 1) {
     w.out = out;
     if (out.kick) {
       const kx = out.kick.x - b.x, kz = out.kick.z - b.z, kl = Math.hypot(kx, kz) || 1;
-      w.kicks.push({ at: w.now, from: on, dest: out.kick, dist: Math.hypot(px - b.x, pz - b.z) });
+      w.kicks.push({ at: w.now, from: on, dest: out.kick, dist: Math.hypot(px - b.x, pz - b.z), swing: out.pose.swing, paddling: out.pose.paddling,
+        kickPose: out.pose.kick, facing: out.facing, bx: b.x, bz: b.z });
       w.target = { x: out.kick.x, z: out.kick.z }; b.vx = kx / kl * 7; b.vz = kz / kl * 7; b.bvy = 4.6;
       Object.assign(w.kicks.at(-1), { speed: Math.hypot(b.vx, b.vz), bvy: b.bvy });
     }
@@ -100,65 +101,85 @@ function check(name, ok, detail) {
 const angDiff = (a, b) => Math.abs(Math.atan2(Math.sin(a - b), Math.cos(a - b)));
 const f2 = (n) => n.toFixed(2);
 
-/* 1. Paddle routine shortly after load: paddling at 3 s, ends at 6.3 s. */
+/* 1. Forehand hits: after the first pass (always a kick), about half of his
+      passes are a pickleball forehand from paddle reach, the ball leaving at
+      the swing's contact point; the paddle is out for every hit. */
 {
-  const w = makeWorld(1);
-  let firstPaddle = null, lastPaddle = null, faceAt3 = null;
-  w.runUntil(7000, (o) => {
-    if (o.pose.paddling) { firstPaddle ??= w.now; lastPaddle = w.now; }
-    if (faceAt3 === null && w.now >= 3000) faceAt3 = o;
-  });
-  check("paddles shortly after load (bouncing at ~3 s, until 6.3 s, facing 0.35)",
-    faceAt3.pose.paddling && firstPaddle < 100 && lastPaddle < 6300 && lastPaddle > 6250 && angDiff(faceAt3.facing, 0.35) < 0.01,
-    `paddling ${f2(firstPaddle / 1000)}–${f2(lastPaddle / 1000)} s; at 3 s paddling=${faceAt3.pose.paddling} facing=${f2(faceAt3.facing)}`);
+  let firstHits = 0, total = 0, hits = 0, badReach = 0, badContact = 0, noPaddle = 0, passes = 0, offAim = 0, worst = 0;
+  for (let seed = 1; seed <= 200; seed++) {
+    const w = makeWorld(seed);
+    w.runUntil(400000);
+    w.kicks.forEach((k, i) => {
+      const hit = k.swing > 0;
+      // the ball leaves the way he faces (never behind him)
+      const aim = angDiff(k.facing, Math.atan2(k.dest.x - k.bx, k.dest.z - k.bz));
+      passes++; worst = Math.max(worst, aim); if (aim > 0.45) offAim++;
+      if (i === 0) { if (hit) firstHits++; return; }
+      total++;
+      if (!hit) return;
+      hits++;
+      if (!(k.dist > 1.4 && k.dist < 1.95)) badReach++;
+      if (!(k.swing > 0.5 && k.swing < 0.62)) badContact++;
+      if (!k.paddling) noPaddle++;
+    });
+  }
+  check("after the first pass, ~50% of passes are forehands (the first is always a kick)",
+    firstHits === 0 && Math.abs(hits / total - 0.5) < 0.05, `${hits}/${total} = ${f2(hits / total)}; first-pass forehands ${firstHits}`);
+  check("forehands send the ball from paddle reach at the swing's contact, paddle out",
+    hits > 0 && badReach === 0 && badContact === 0 && noPaddle === 0,
+    `${hits} hits; off reach ${badReach}, off contact ${badContact}, without paddle ${noPaddle}`);
+  check("every pass (kick or forehand) goes the way he faces, within 26°",
+    passes > 0 && offAim === 0, `${passes} passes; off aim ${offAim}; worst ${f2(worst)} rad`);
 }
 
-/* 2. First pass: untouched, he starts the chase at 8.5 s and passes the ball. */
+/* 2. First pass: untouched, he starts the chase at 12 s and passes the ball onto a pad. */
 {
   const w = makeWorld(2);
   let chaseAt = null, maxRun = 0;
-  w.runUntil(12000, (o) => {
+  w.runUntil(16000, (o) => {
     if (o.pose.state === "chase") { chaseAt ??= w.now; maxRun = Math.max(maxRun, o.pose.speed); }
     if (w.kicks.length) return false;
   });
   const k = w.kicks[0];
-  check("untouched, he runs to the ball at 8.5 s and passes it (kick at dist < 0.95, ball speed 7, bvy 4.6)",
-    chaseAt > 8500 && chaseAt < 8500 + 20 && k && k.dist < 0.95 && Math.abs(k.speed - 7) < 1e-9 && k.bvy === 4.6,
+  const toPad = k && PADS.some((pp) => pp.x === k.dest.x && pp.z === k.dest.z);
+  check("untouched, he runs to the ball at 12 s, lines up behind it and kicks it onto a pad (from ~1.15, at the strike's contact, ball speed 7, bvy 4.6)",
+    chaseAt > 12000 && chaseAt < 12000 + 20 && toPad && k && k.dist > 1.0 && k.dist < 1.35 && k.kickPose > 0.4 && k.kickPose < 0.52 && Math.abs(k.speed - 7) < 1e-9 && k.bvy === 4.6,
     `chase began ${f2(chaseAt / 1000)} s; kick at ${k && f2(k.at / 1000)} s from ${k && f2(k.dist)} away to (${k && k.dest.x}, ${k && k.dest.z}) at speed ${k && f2(k.speed)}, bvy ${k && k.bvy}; top chase speed ${f2(maxRun)}`);
   check("chase speed tops out at 6.2", maxRun <= 6.2 + 1e-9 && maxRun > 5.5, `max ${maxRun.toFixed(3)}`);
   const kickPoses = [];
-  w.runUntil(w.now + 400, (o) => { kickPoses.push(o.pose.kick); });
+  w.runUntil(w.now + 450, (o) => { kickPoses.push(o.pose.kick); });
   const nonzero = kickPoses.filter((v) => v > 0);
-  check("kick pose runs 0→1 over 0.3 s after the pass",
-    nonzero.length >= 16 && nonzero.length <= 18 && nonzero.every((v, i) => i === 0 || v > nonzero[i - 1]) && nonzero.at(-1) > 0.9,
+  check("the strike follows through to the end (~0.3 s after contact)",
+    nonzero.length >= 15 && nonzero.length <= 22 && nonzero.every((v, i) => i === 0 || v > nonzero[i - 1]) && nonzero.at(-1) > 0.9,
     `${nonzero.length} frames of kick, last ${f2(nonzero.at(-1))}`);
 }
 
-/* 3. Kick destinations: 65% to a pad off a pad, 50% on a pad, never the same pad; 5200 ms cooldown. */
+/* 3. Kick destinations (after the first pass): 65% to a pad off a pad, 50% on a pad, never the same pad; 45 s cooldown. */
 {
   let offPad = 0, offPadToPad = 0, onPad = 0, onPadToPad = 0, samePad = 0, minGap = Infinity;
   for (let seed = 1; seed <= 300; seed++) {
     const w = makeWorld(seed);
-    w.runUntil(120000);
+    w.runUntil(600000);
     for (let i = 0; i < w.kicks.length; i++) {
       const k = w.kicks[i];
+      if (i > 0) minGap = Math.min(minGap, k.at - w.kicks[i - 1].at);
+      if (i === 0) continue;              // the first pass always goes to a pad (section 2)
       const toPad = !(k.dest.x === BALL_START.x && k.dest.z === BALL_START.z);
       if (k.from < 0) { offPad++; if (toPad) offPadToPad++; }
       else {
         onPad++; if (toPad) onPadToPad++;
         if (toPad && PADS[k.from].x === k.dest.x && PADS[k.from].z === k.dest.z) samePad++;
       }
-      if (i > 0) minGap = Math.min(minGap, k.at - w.kicks[i - 1].at);
     }
   }
   const pOff = offPadToPad / offPad, pOn = onPadToPad / onPad;
   check("off a pad he aims for a pad ~65% of the time", Math.abs(pOff - 0.65) < 0.03, `${offPadToPad}/${offPad} = ${f2(pOff)}`);
   check("on a pad he aims for another pad ~50% of the time, never the same pad",
     Math.abs(pOn - 0.5) < 0.04 && samePad === 0, `${onPadToPad}/${onPad} = ${f2(pOn)}; same-pad passes ${samePad}`);
-  check("kicks are at least 5200 ms apart", minGap >= 5200, `shortest gap ${Math.round(minGap)} ms`);
+  check("kicks are at least 45 s apart", minGap >= 45000, `shortest gap ${Math.round(minGap)} ms`);
 }
 
-/* 4. Lit pad: runs beside it, cheers ~2.6 s after arriving, then watches. */
+/* 4. Lit pad: runs beside it, fist-pumps ~1.9 s after arriving, then watches. */
 {
   const w = makeWorld(3);
   w.click(PADS[2].x, PADS[2].z);                     // visitor rolls the ball onto pad 2
@@ -175,8 +196,8 @@ const f2 = (n) => n.toFixed(2);
   check("runs beside a lit pad at (p.x*0.72, p.z*0.72-0.6), at 6.2",
     off < 0.5 && maxRun <= 6.2 + 1e-9 && maxRun > 5.5, `${f2(off)} from the spot; top run speed ${maxRun.toFixed(3)}`);
   const cheerMs = cheerTo - cheerFrom + DT * 1000;
-  check("cheers ~2.6 s then watches, facing 0.35",
-    Math.abs(cheerMs - 2600) < 40 && watchAt > cheerTo && lastOut.pose.state === "watch" && angDiff(lastOut.facing, 0.35) < 0.01,
+  check("fist-pumps ~1.9 s then watches, facing 0.35",
+    Math.abs(cheerMs - 1900) < 40 && watchAt > cheerTo && lastOut.pose.state === "watch" && angDiff(lastOut.facing, 0.35) < 0.01,
     `cheer ${Math.round(cheerMs)} ms (from ${f2(cheerFrom / 1000)} s), then watch; facing ${f2(lastOut.facing)}`);
 }
 
@@ -254,7 +275,7 @@ const f2 = (n) => n.toFixed(2);
   check("he leaves a ball rolling at 1.5 or faster alone", chase3 === 0, `chase frames ${chase3}`);
 }
 
-/* 8. Wanders near the ball at 2.3, faces it when standing; paddles on ~40% of idles. */
+/* 8. Wanders near the ball at 2.3, faces it when standing. */
 {
   let walks = 0, paddles = 0, maxWalk = 0, badTarget = 0, faceSamples = 0, faceOff = 0;
   for (let seed = 1; seed <= 40; seed++) {
@@ -271,7 +292,7 @@ const f2 = (n) => n.toFixed(2);
       }
       if (s === "idle" && idleFromWalk && o.pose.paddling) paddledThisIdle = true;
       if (prev === "idle" && s !== "idle" && idleFromWalk) { if (paddledThisIdle) paddles++; idleFromWalk = false; }
-      if (s === "idle" && !o.pose.paddling && o.pose.speed < 0.05 && idleFromWalk) {
+      if (s === "idle" && !o.pose.paddling && !o.pose.activity && o.pose.speed < 0.05 && idleFromWalk) {
         // after turning settles, he should face the ball
         faceSamples++;
         if (angDiff(o.facing, Math.atan2(ww.ball.x - o.x, ww.ball.z - o.z)) > 0.15) faceOff++;
@@ -283,7 +304,6 @@ const f2 = (n) => n.toFixed(2);
     walks > 1000 && badTarget === 0 && maxWalk <= 2.3 + 1e-9 && maxWalk > 2.2, `${walks} walks; off-limits ${badTarget}; top walk speed ${maxWalk.toFixed(3)}`);
   check("faces the ball when standing", faceSamples > 0 && faceOff / faceSamples < 0.05,
     `${faceSamples - faceOff}/${faceSamples} settled idle frames within 0.15 rad of the ball`);
-  check("pulls the paddle out on ~40% of idles", Math.abs(paddles / walks - 0.4) < 0.03, `${paddles}/${walks} = ${f2(paddles / walks)}`);
 }
 
 /* 9. Self-demo: left alone for 30 s, the ball reaches a pad. */

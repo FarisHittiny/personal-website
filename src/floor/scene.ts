@@ -32,9 +32,6 @@ import {
   GridHelper,
   Group,
   HemisphereLight,
-  IcosahedronGeometry,
-  LineBasicMaterial,
-  LineSegments,
   Material,
   Mesh,
   MeshBasicMaterial,
@@ -58,10 +55,11 @@ import {
   Vector2,
   Vector3,
   WebGLRenderer,
-  WireframeGeometry,
 } from "three";
 import { BALL_START, HEADLINES } from "../content";
 import { createStandInCharacter, type Character } from "./character";
+import { buildHorizon } from "./horizon";
+import { buildFireflies } from "./ambient";
 import { createNpc } from "./npc";
 
 export interface SceneOptions {
@@ -78,7 +76,8 @@ const LAMP_INTENSITY = 45;
 const LAMP_DECAY = 1.1;
 const DISC_EMISSIVE_BASE = 0.004;
 const DISC_EMISSIVE_GLOW = 0.8;
-const CORE_EMISSIVE = 0.42;
+const CORE_EMISSIVE = 0.03;      // was 0.42 on the glowing wireframe ball; now matte, barely lit
+const BALL_COLOUR = 0xe6eaf4;    // soft white with a hint of the stage blue
 
 /* ---- pad labels ----
  * Which line of the pad label is drawn large. "topic" (Faris's pick): big
@@ -153,13 +152,17 @@ export function startScene(opts: SceneOptions): FloorScene {
   sun.position.set(6, 12, 9);
   scene.add(sun);
 
+  // Plain ground and a soft grid (the Nov 2026 tile pattern was removed).
   const ground = new Mesh(new PlaneGeometry(140, 140),
     new MeshLambertMaterial({ color: 0x0f121a }));
   ground.rotation.x = -Math.PI / 2;
   scene.add(ground);
-  const grid = new GridHelper(140, 70, 0x2b3558, 0x182035);
+  const grid = new GridHelper(140, 70, 0x222b47, 0x141a2b);
   grid.position.y = 0.01;
   scene.add(grid);
+  scene.add(buildHorizon());
+  const fireflies = buildFireflies(22);
+  scene.add(fireflies.object);
 
   const sg = new BufferGeometry();
   const sp: number[] = [];
@@ -167,7 +170,7 @@ export function startScene(opts: SceneOptions): FloorScene {
     sp.push((Math.random() - 0.5) * 160, 8 + Math.random() * 40, (Math.random() - 0.5) * 160 - 20);
   }
   sg.setAttribute("position", new Float32BufferAttribute(sp, 3));
-  scene.add(new Points(sg, new PointsMaterial({ color: 0x9fb2ff, size: 0.18, transparent: true, opacity: 0.7 })));
+  scene.add(new Points(sg, new PointsMaterial({ color: 0x9fb2ff, size: 0.18, transparent: true, opacity: 0.45 })));
 
   /* ---- pads ---- */
   const pads = HEADLINES.map((h) => h.pad);
@@ -183,8 +186,8 @@ export function startScene(opts: SceneOptions): FloorScene {
     ring.rotation.x = Math.PI / 2;
     ring.position.y = 0.1;
     g.add(ring);
-    const beam = new Mesh(new CylinderGeometry(0.03, 0.03, 5, 8),
-      new MeshBasicMaterial({ color: ACC, transparent: true, opacity: 0.22 }));
+    const beam = new Mesh(new CylinderGeometry(0.02, 0.02, 5, 8),
+      new MeshBasicMaterial({ color: ACC, transparent: true, opacity: 0.1 }));
     beam.position.y = 2.5;
     g.add(beam);
     const label = document.createElement("canvas");
@@ -216,11 +219,11 @@ export function startScene(opts: SceneOptions): FloorScene {
 
   /* ---- ball and lamp ---- */
   const ball = new Group();
-  const core = new Mesh(new SphereGeometry(R, 36, 24), new MeshStandardMaterial({
-    color: 0xdfe6ff, emissive: ACC, emissiveIntensity: CORE_EMISSIVE, roughness: 0.3 }));
-  const wire = new LineSegments(new WireframeGeometry(new IcosahedronGeometry(R * 1.02, 1)),
-    new LineBasicMaterial({ color: STAGE, transparent: true, opacity: 0.55 }));
-  ball.add(core, wire);
+  // A clean matte ball (Faris, Nov 2026): no pattern, no glow; the lamp
+  // underneath still pools blue light on the floor around it.
+  const core = new Mesh(new SphereGeometry(R, 48, 32), new MeshStandardMaterial({
+    color: BALL_COLOUR, roughness: 0.82, metalness: 0, emissive: ACC, emissiveIntensity: CORE_EMISSIVE }));
+  ball.add(core);
   ball.position.set(BALL_START.x, R, BALL_START.z);
   scene.add(ball);
   const lamp = new PointLight(ACC, LAMP_INTENSITY, 18, LAMP_DECAY);
@@ -349,6 +352,7 @@ export function startScene(opts: SceneOptions): FloorScene {
     const dt = Math.min(0.1, (now - prev) / 1000);
     prev = now;
     clock += dt * 1000;
+    if (!reducedMotion) fireflies.update(now / 1000);
 
     let ax = (isHeld("r") ? 1 : 0) - (isHeld("l") ? 1 : 0);
     let az = (isHeld("d") ? 1 : 0) - (isHeld("u") ? 1 : 0);

@@ -543,10 +543,12 @@
   0%,
   40% {
     background: var(--flash);
+    box-shadow: 0 0 0 1px var(--accent), 0 0 24px var(--glow);
   }
 
   100% {
     background: transparent;
+    box-shadow: 0 0 0 1px transparent, 0 0 24px transparent;
   }
 }
 

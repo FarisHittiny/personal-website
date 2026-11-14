@@ -178,7 +178,7 @@ email address.
 ## The character (Phase 2)
 
 The floor's character is `public/models/faris.glb` (about 600 KB): a stylized 3D model of Faris
-with five baked clips (idle, walk, run, kick, cheer). `src/floor/modelCharacter.ts` loads it in its
+with five baked clips (idle, walk, run, kick, and a fist pump named `cheer`); he moves the ball with a kick or a procedural pickleball forehand (`forehand()` in modelCharacter.ts, paddle from `buildPaddle()` in character.ts). `src/floor/modelCharacter.ts` loads it in its
 own chunk once the page is idle and swaps it in for the primitive stand-in (`character.ts`). If the
 file fails to load, or with `?stand-in` in the URL, the stand-in stays.
 

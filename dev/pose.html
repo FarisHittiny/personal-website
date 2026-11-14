@@ -1,0 +1,48 @@
+<!doctype html>
+<!-- Dev-only: the real modelCharacter.ts with a fixed pose.
+     /dev/pose.html?state=swing&paddling=1&swing=0.55&ball=1&yaw=30  (swing = forehand progress, contact 0.55) -->
+<html lang="en">
+<head><meta charset="utf-8"><title>Pose preview</title>
+<style>html,body{margin:0;background:#0b0d12}canvas{display:block}</style></head>
+<body>
+<script type="module">
+import * as THREE from "three";
+import { loadModelCharacter } from "/src/floor/modelCharacter.ts";
+
+const q = new URLSearchParams(location.search);
+const renderer = new THREE.WebGLRenderer({ antialias: true });
+renderer.setSize(innerWidth, innerHeight);
+document.body.append(renderer.domElement);
+const scene = new THREE.Scene();
+scene.add(new THREE.HemisphereLight(0xffffff, 0x334, 2.2));
+const sun = new THREE.DirectionalLight(0xffffff, 2.5); sun.position.set(3, 6, 5); scene.add(sun);
+scene.add(new THREE.GridHelper(10, 20, 0x334, 0x223));
+const cam = new THREE.PerspectiveCamera(40, innerWidth / innerHeight, 0.1, 100);
+const close = q.has("close"); cam.position.set(close ? -1.2 : 0, close ? 1.6 : 2.2, close ? 3.2 : 7.5); cam.lookAt(close ? -0.6 : 0, close ? 1.1 : 1.3, 0);
+if (q.has("cam")) { const [x, y, z, tx, ty, tz] = q.get("cam").split(",").map(Number); cam.position.set(x, y, z); cam.lookAt(tx, ty, tz); }
+
+const c = await loadModelCharacter("/models/faris.glb");
+c.root.rotation.y = Number(q.get("yaw") ?? 0) * Math.PI / 180;
+scene.add(c.root);
+const pose = { state: q.get("state") ?? "idle", speed: Number(q.get("speed") ?? 0), kick: Number(q.get("kick") ?? 0), paddling: q.get("paddling") === "1", swing: Number(q.get("swing") ?? 0), activity: q.get("activity") };
+if (q.has("ball")) {   // the big ball where the brain plants it for a forehand (front-right, 1.7 away)
+  const b = new THREE.Mesh(new THREE.SphereGeometry(0.62, 32, 20), new THREE.MeshStandardMaterial({ color: 0xe6eaf4, roughness: 0.82 }));
+  const a = c.root.rotation.y - Math.PI / 4;
+  b.position.set(Math.sin(a) * 1.7, 0.62, Math.cos(a) * 1.7);
+  scene.add(b);
+}
+const now = Number(q.get("now") ?? 0);
+// settle the clip weights, then render the requested instant
+for (let t = 0; t < now; t += 16) c.update(pose, t, 0.016);
+c.update(pose, now, 0.016);
+if (q.has("hand")) {   // hand=dx,dy,dz,dist: camera that far from the right fist, looking at it
+  const [dx, dy, dz, d] = q.get("hand").split(",").map(Number);
+  c.root.updateMatrixWorld(true);
+  const h = c.root.getObjectByName("mixamorigRightHandMiddle1").getWorldPosition(new THREE.Vector3());
+  cam.position.copy(h).addScaledVector(new THREE.Vector3(dx, dy, dz).normalize(), d); cam.lookAt(h);
+}
+renderer.render(scene, cam);
+window.__ready = true;
+</script>
+</body>
+</html>
