@@ -58,6 +58,7 @@ import {
 } from "three";
 import { BALL_START, HEADLINES } from "../content";
 import { createStandInCharacter, type Character } from "./character";
+import { buildHorizon } from "./horizon";
 import { createNpc } from "./npc";
 
 export interface SceneOptions {
@@ -158,6 +159,7 @@ export function startScene(opts: SceneOptions): FloorScene {
   const grid = new GridHelper(140, 70, 0x222b47, 0x141a2b);
   grid.position.y = 0.01;
   scene.add(grid);
+  scene.add(buildHorizon());
 
   const sg = new BufferGeometry();
   const sp: number[] = [];
