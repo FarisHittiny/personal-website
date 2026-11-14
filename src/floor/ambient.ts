@@ -1,6 +1,6 @@
 /** Fireflies over the floor (Faris, Nov 2026): a couple dozen warm specks
- *  drifting and blinking low over the ground. String lights and a stone wall
- *  were tried and cut as too busy. Seeded; they ignore fog so the far ones
+ *  drifting and blinking low over the ground. An olive tree, string lights and a stone
+ *  wall were tried and cut. Seeded; they ignore fog so the far ones
  *  still glow. */
 import {
   AdditiveBlending,

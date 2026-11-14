@@ -59,7 +59,6 @@ import {
 import { BALL_START, HEADLINES } from "../content";
 import { createStandInCharacter, type Character } from "./character";
 import { buildHorizon } from "./horizon";
-import { buildOlive } from "./olive";
 import { buildFireflies } from "./ambient";
 import { createNpc } from "./npc";
 
@@ -162,12 +161,6 @@ export function startScene(opts: SceneOptions): FloorScene {
   grid.position.y = 0.01;
   scene.add(grid);
   scene.add(buildHorizon());
-  // One old olive tree, back-left, outside the arc of pads and clear of the ball.
-  const olive = buildOlive();
-  olive.position.set(-10.5, 0, -16);
-  olive.rotation.y = 0.6;
-  olive.scale.setScalar(1.15);
-  scene.add(olive);
   const fireflies = buildFireflies(22);
   scene.add(fireflies.object);
 
