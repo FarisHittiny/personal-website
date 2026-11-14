@@ -60,6 +60,7 @@ import { BALL_START, HEADLINES } from "../content";
 import { createStandInCharacter, type Character } from "./character";
 import { buildHorizon } from "./horizon";
 import { buildOlive } from "./olive";
+import { buildFireflies, buildStoneWall, buildStringLights } from "./ambient";
 import { createNpc } from "./npc";
 
 export interface SceneOptions {
@@ -167,6 +168,14 @@ export function startScene(opts: SceneOptions): FloorScene {
   olive.rotation.y = 0.6;
   olive.scale.setScalar(1.15);
   scene.add(olive);
+  // String lights from the tree's canopy to two posts behind the pads.
+  const posts = [new Vector3(0, 4.6, -17.5), new Vector3(9.5, 4.3, -15)];
+  scene.add(buildStringLights([new Vector3(-9.2, 3.6, -16), ...posts], posts));
+  const fireflies = buildFireflies();
+  scene.add(fireflies.object);
+  if (import.meta.env.DEV && new URLSearchParams(location.search).has("wall")) {
+    scene.add(buildStoneWall(new Vector3(-17, 0, -13), new Vector3(-6.5, 0, -19.5), -1));
+  }
 
   const sg = new BufferGeometry();
   const sp: number[] = [];
@@ -356,6 +365,7 @@ export function startScene(opts: SceneOptions): FloorScene {
     const dt = Math.min(0.1, (now - prev) / 1000);
     prev = now;
     clock += dt * 1000;
+    if (!reducedMotion) fireflies.update(now / 1000);
 
     let ax = (isHeld("r") ? 1 : 0) - (isHeld("l") ? 1 : 0);
     let az = (isHeld("d") ? 1 : 0) - (isHeld("u") ? 1 : 0);
