@@ -60,6 +60,7 @@ import { BALL_START, HEADLINES } from "../content";
 import { createStandInCharacter, type Character } from "./character";
 import { buildHorizon } from "./horizon";
 import { buildFireflies } from "./ambient";
+import { buildStones } from "./stones";
 import { createNpc } from "./npc";
 
 export interface SceneOptions {
@@ -160,6 +161,7 @@ export function startScene(opts: SceneOptions): FloorScene {
   const grid = new GridHelper(140, 70, 0x222b47, 0x141a2b);
   grid.position.y = 0.01;
   scene.add(grid);
+  scene.add(buildStones());   // a few lone stones beside the pads
   scene.add(buildHorizon());
   const fireflies = buildFireflies(22);
   scene.add(fireflies.object);
