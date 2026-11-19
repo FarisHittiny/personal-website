@@ -2,7 +2,7 @@
  *  (git-ignored: the Tripo export and the Mixamo clips are not ours to redistribute
  *  as source; only the baked, compressed result ships).
  *
- *    faris-rigged.glb   Hunyuan3D mesh, auto-rigged in Tripo (Mixamo bone names,
+ *    faris-rigged.glb   Meshy 7.1 mesh (decimated to 40k tris), auto-rigged in Tripo (Mixamo bone names,
  *                       but Tripo's own bone axes and an A-pose bind pose)
  *    idle|walk|run|kick|cheer.fbx   Mixamo clips, "without skin", T-pose rest
  *
