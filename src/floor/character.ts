@@ -26,7 +26,7 @@ import {
 export type CharacterState = "idle" | "walk" | "chase" | "run" | "kick" | "swing" | "cheer" | "watch";
 
 /** Something he does while standing around (clips in faris.glb; npc.ts picks). */
-export type CharacterActivity = "weightshift" | "lookaround" | "stretch" | "thinking" | "texting" | "juggle";
+export type CharacterActivity = "weightshift" | "lookaround" | "stretch" | "texting" | "juggle";
 
 export interface CharacterPose {
   state: CharacterState;

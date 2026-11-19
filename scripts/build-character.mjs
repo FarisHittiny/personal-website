@@ -2,7 +2,7 @@
  *  (git-ignored: the Tripo export and the Mixamo clips are not ours to redistribute
  *  as source; only the baked, compressed result ships).
  *
- *    faris-rigged.glb   Hunyuan3D mesh, auto-rigged in Tripo (Mixamo bone names,
+ *    faris-rigged.glb   Meshy 7.1 mesh (decimated to 40k tris), auto-rigged in Tripo (Mixamo bone names,
  *                       but Tripo's own bone axes and an A-pose bind pose)
  *    idle|walk|run|kick|cheer.fbx   Mixamo clips, "without skin", T-pose rest
  *
@@ -42,7 +42,6 @@ const CLIPS = [
   ["weightshift", "idle-weightshift.fbx", 8],  // "Idle" (weight shift)
   ["lookaround", "idle-lookaround.fbx", null], // "Looking Around"
   ["stretch", "idle-stretch.fbx", null],       // "Arm Stretching"
-  ["thinking", "idle-thinking.fbx", null],     // "Thinking"
   ["texting", "idle-texting.fbx", 8],          // "Texting While Standing"
   ["juggle", "pack-kick-soccerball-_2_.fbx", null], // "Juggling Right Kick": touch at 0.27 s, loops
 ];
@@ -69,11 +68,13 @@ const root = doc.getRoot();
 
 /* Materials: the exported roughness/metal map is a 2K 16-bit PNG that sharp
  * cannot re-encode and that adds a plasticky sheen at this size; a flat matte
- * finish matches the stylized look. Base colour goes to 1K WebP. */
+ * finish matches the stylized look. The normal map goes too: it was baked for
+ * the full-detail Meshy mesh, and on the decimated one it throws streaky
+ * highlights (Faris: "why are my pants so shiny"). Base colour goes to 1K WebP. */
 for (const m of root.listMaterials()) {
-  const mr = m.getMetallicRoughnessTexture();
-  m.setMetallicRoughnessTexture(null).setMetallicFactor(0).setRoughnessFactor(0.85);
-  mr?.dispose();
+  const mr = m.getMetallicRoughnessTexture(), nm = m.getNormalTexture();
+  m.setMetallicRoughnessTexture(null).setNormalTexture(null).setMetallicFactor(0).setRoughnessFactor(1);
+  mr?.dispose(); nm?.dispose();
 }
 for (const t of root.listTextures()) {
   console.log("texture", t.getName(), t.getMimeType());
