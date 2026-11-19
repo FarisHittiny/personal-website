@@ -46,6 +46,8 @@ const CLIPS = [
   ["juggle", "pack-kick-soccerball-_2_.fbx", null], // "Juggling Right Kick": touch at 0.27 s, loops
 ];
 const SKIP = /Hand(Thumb|Index|Middle|Ring|Pinky)|Toe_End|HeadTop_End/;
+/* The fist pump keeps its fingers, or the raised hand reads as a limp wave. */
+const SKIP_WITH_FINGERS = /Toe_End|HeadTop_End/;
 
 const key = (name) => name.replace(/[:\s]/g, "");
 /* A bone's direction is measured toward one specific child, the same in both
@@ -165,6 +167,7 @@ for (const j of order) {
 /* ---------- per clip ---------- */
 const anims = [];
 for (const [name, file, keep] of CLIPS) {
+  const skip = name === "cheer" ? SKIP_WITH_FINGERS : SKIP;
   const clip = loadFbx(file).animations[0];
   for (const [k, [pos, quat]] of sRestLocal) { const o = sBones.get(k); o.position.copy(pos); o.quaternion.copy(quat); }
   const mixer = new AnimationMixer(src);
@@ -190,7 +193,7 @@ for (const [name, file, keep] of CLIPS) {
       const parentNode = j.getParentNode();
       const parentWQ = newWQ.get(parentNode) ?? wq(tObj.get(parentNode));
       let world;
-      if (!s || SKIP.test(k)) {
+      if (!s || skip.test(k)) {
         // keep rest local rotation: world follows parent
         world = parentWQ.clone().multiply(new Quaternion().fromArray(j.getRotation()));
       } else {
@@ -221,7 +224,7 @@ for (const [name, file, keep] of CLIPS) {
   const anim = doc.createAnimation(name);
   const input = doc.createAccessor().setType("SCALAR").setArray(times);
   for (const j of order) {
-    if (SKIP.test(key(j.getName()))) continue;
+    if (skip.test(key(j.getName()))) continue;
     const out = doc.createAccessor().setType("VEC4").setArray(rot.get(j));
     const sampler = doc.createAnimationSampler().setInput(input).setOutput(out).setInterpolation("LINEAR");
     anim.addSampler(sampler).addChannel(doc.createAnimationChannel().setTargetNode(j).setTargetPath("rotation").setSampler(sampler));
