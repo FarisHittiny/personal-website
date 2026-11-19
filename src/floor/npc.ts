@@ -72,7 +72,7 @@ const SWING_CONTACT = 0.55;          // fraction of the swing at which the paddl
 const ACTIVITY_CHANCE = 0.55;
 const ACTIVITIES: readonly (readonly [CharacterActivity, number])[] = [
   ["weightshift", 8000], ["lookaround", 6300], ["stretch", 8800],
-  ["thinking", 4200], ["texting", 8000], ["juggle", 4000],
+  ["texting", 8000], ["juggle", 4000],   // "thinking" cut (Faris: "very zesty")
 ];
 const VEL_SMOOTH = 7;                // min(1, dt * 7)
 const FACE_MOVING = 0.5;             // face travel direction above this speed

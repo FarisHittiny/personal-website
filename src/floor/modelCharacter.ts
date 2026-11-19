@@ -13,6 +13,7 @@
  *  the scene chunk and off the critical path. */
 
 import {
+  LinearFilter,
   AnimationMixer,
   Box3,
   BoxGeometry,
@@ -39,8 +40,11 @@ import { buildPaddle, type Character, type CharacterActivity, type CharacterPose
 export const MODEL_URL = "/models/faris.glb";
 
 const HEIGHT = 3.3;           // world units (Faris, Nov 2026: 2.75 read "a little small")
-const WALK_SPEED = 1.6;       // ground speed (units/s) at which the walk clip plays at 1x
-const RUN_SPEED = 4.6;        // same for the run clip
+/* Ground speeds (units/s) at which the clips play at 1x, scaled with his height so
+ * the feet do not scurry (Faris: "I walk around all weird"): Mixamo walk ~0.78 and
+ * run ~1.9 body-heights per second. */
+const WALK_SPEED = 0.78 * HEIGHT;
+const RUN_SPEED = 1.9 * HEIGHT;
 const RUN_FROM = 2.8;         // above this speed he runs instead of walks
 const IDLE_BELOW = 0.25;
 const FADE = 0.18;            // s, cross-fade between locomotion clips
@@ -59,7 +63,14 @@ export async function loadModelCharacter(url = MODEL_URL): Promise<Character> {
   model.position.set(-((box.min.x + box.max.x) / 2) * s, -box.min.y * s, -((box.min.z + box.max.z) / 2) * s);
   model.traverse((o) => {
     const m = o as Mesh;
-    if (m.isMesh) m.frustumCulled = false; // skinned bounds don't follow the pose
+    if (!m.isMesh) return;
+    m.frustumCulled = false; // skinned bounds don't follow the pose
+    /* No mipmaps: the texture atlas packs its pieces edge to edge, so the
+     * smaller mip levels blend the jacket's beige into the black trousers as
+     * pale streaks (Faris: "why are my pants so shiny"). At his on-screen size
+     * the 1K texture is close to 1:1, so plain linear filtering holds up. */
+    const map = (m.material as MeshStandardMaterial).map;
+    if (map) { map.generateMipmaps = false; map.minFilter = LinearFilter; map.needsUpdate = true; }
   });
 
   const root = new Group();
@@ -91,7 +102,7 @@ export async function loadModelCharacter(url = MODEL_URL): Promise<Character> {
   kick.setLoop(LoopOnce, 1);
   kick.clampWhenFinished = true;
   /* Idle activities (npc.ts ACTIVITIES); "juggle" loops one touch. */
-  const ACTIVITY_NAMES = ["weightshift", "lookaround", "stretch", "thinking", "texting", "juggle"] as const;
+  const ACTIVITY_NAMES = ["weightshift", "lookaround", "stretch", "texting", "juggle"] as const;
   const acts = Object.fromEntries(ACTIVITY_NAMES.map((n) => [n, action(n)])) as Record<CharacterActivity, AnimationAction>;
   for (const a of Object.values(acts)) { a.play(); a.setEffectiveWeight(0); }
   // The celebration is a single fist pump (Mixamo "Fist Pump", 1.9 s): it
