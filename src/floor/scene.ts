@@ -61,7 +61,7 @@ import { createStandInCharacter, type Character } from "./character";
 import { buildHorizon } from "./horizon";
 import { buildFireflies } from "./ambient";
 import { buildStones } from "./stones";
-import { createNpc } from "./npc";
+import { CARRY_Y, CARRY_Z, createNpc } from "./npc";
 
 export interface SceneOptions {
   host: HTMLElement; canvas: HTMLCanvasElement; reducedMotion: boolean;
@@ -98,6 +98,11 @@ const LABEL_SLOTS = {
 const ACC = 0x6c8cff;
 const STAGE = 0x0b0c10;
 const R = 0.62;                 // ball radius
+const GAZE_Y = 2.0;             // he looks at the cursor's spot on the ground, raised to about eye level
+const GAZE_RANGE = 12;          // ... only when it is this close to him
+const GAZE_HOLD_MS = 4000;      // ... and for this long after the pointer last moved or tapped
+const GREET_AFTER_MS = 1200;    // the wave waits this long after the floor starts
+const GREET_LATEST_MS = 6000;   // ... and for the model, but no longer than this
 const ACCEL = 30;
 const FRONT_EDGE = 8;           // ball.z clamp toward the camera
 const ARROWDOWN_RELEASE = 7.5;  // from here on ArrowDown scrolls the page
@@ -238,6 +243,7 @@ export function startScene(opts: SceneOptions): FloorScene {
   // The stand-in draws at once; the rigged GLB (Phase 2) replaces it when it
   // has loaded. If it fails, or with ?stand-in, the stand-in stays.
   let character: Character = createStandInCharacter();
+  let modelIn = false;   // the GLB has replaced the stand-in (he waits for it before waving)
   scene.add(character.root);
   const swapIn = (next: Character): void => {
     if (disposed) { next.dispose(); return; }
@@ -246,6 +252,7 @@ export function startScene(opts: SceneOptions): FloorScene {
     character.dispose();
     character = next;
     scene.add(next.root);
+    modelIn = true;
   };
   if (!new URLSearchParams(location.search).has("stand-in")) {
     const loadModel = (): void => {
@@ -257,7 +264,14 @@ export function startScene(opts: SceneOptions): FloorScene {
     if ("requestIdleCallback" in window) window.requestIdleCallback(loadModel, { timeout: 2500 });
     else setTimeout(loadModel, 800);
   }
-  const npc = createNpc(pads, clock);
+  const firstMode = import.meta.env.DEV ? new URLSearchParams(location.search).get("first") : null;
+  const npc = createNpc(pads, clock, Math.random,
+    firstMode === "carry" || firstMode === "hit" ? firstMode : undefined);
+  /* Dev only: ?pose=crouch:1,hold:1,lift:0 freezes those pose fields (and puts the ball in his hands) for screenshots. */
+  const poseOverride = import.meta.env.DEV && new URLSearchParams(location.search).get("pose");
+  const frozen: Record<string, number> = poseOverride
+    ? Object.fromEntries(poseOverride.split(",").map((kv) => { const [k, v] = kv.split(":"); return [k, Number(v)]; }))
+    : {};
   let npcX = 0;  // his position after the previous frame's step
   let npcZ = 0;
   let npcSeen = false;
@@ -270,6 +284,10 @@ export function startScene(opts: SceneOptions): FloorScene {
   const held = new Map<string, Dir>(); // code -> direction
   let target: { x: number; z: number } | null = null;
   let lastInputAt = -9999;
+  let carried = false;          // the ball is in his hands (npc.ts carry)
+  let greetPending = false, greeted = false;
+  const gaze = new Vector3();   // the visitor's cursor on the ground; he glances at it
+  let gazeAt = -9999;           // scene ms of the last pointer move or tap
   let visible = true;  // any part on screen
   let active = true;   // more than half on screen
   let narrow = false;
@@ -328,6 +346,18 @@ export function startScene(opts: SceneOptions): FloorScene {
     tookBall();
   };
   canvas.addEventListener("click", onClick);
+  const onPointerMove = (e: PointerEvent): void => {
+    const b = canvas.getBoundingClientRect();
+    ndc.set(((e.clientX - b.left) / b.width) * 2 - 1, -((e.clientY - b.top) / b.height) * 2 + 1);
+    ray.setFromCamera(ndc, cam);
+    if (!ray.ray.intersectPlane(plane, hit)) return;
+    gaze.set(hit.x, GAZE_Y, hit.z);
+    gazeAt = clock;
+  };
+  const onPointerLeave = (): void => { gazeAt = -9999; };
+  canvas.addEventListener("pointermove", onPointerMove);
+  canvas.addEventListener("pointerdown", onPointerMove);
+  canvas.addEventListener("pointerleave", onPointerLeave);
 
   /* ---- size ---- */
   const size = (): void => {
@@ -388,7 +418,7 @@ export function startScene(opts: SceneOptions): FloorScene {
     let on = -1;
     padObjs.forEach((o, i) => {
       const p = pads[i]!;
-      const inside = Math.hypot(p.x - ball.position.x, p.z - ball.position.z) < 2.2;
+      const inside = !carried && Math.hypot(p.x - ball.position.x, p.z - ball.position.z) < 2.2;
       if (inside) on = i;
       o.glow += ((inside ? 1 : 0) - o.glow) * Math.min(1, dt * 6);
       o.disc.material.emissiveIntensity = DISC_EMISSIVE_BASE + o.glow * DISC_EMISSIVE_GLOW;
@@ -404,6 +434,23 @@ export function startScene(opts: SceneOptions): FloorScene {
       steering: held.size > 0 || target !== null,
       lastInputAt, onPad: on,
     });
+    if (poseOverride) {
+      Object.assign(out.pose, frozen, { state: frozen.hold ? "pickup" : "idle", speed: 0, activity: null });
+      out.x = -3.5; out.z = -3.5; out.facing = frozen.face ?? 0.35;
+      if ("lift" in frozen) out.carry = { lift: frozen.lift! };
+    }
+    carried = out.carry !== null;
+    if (out.carry) {
+      /* In his hands: CARRY_Z in front of him, lifted toward CARRY_Y. On the
+         frame he lets go the ball keeps this height and falls from it. */
+      ball.position.x = out.x + Math.sin(out.facing) * CARRY_Z;
+      ball.position.z = out.z + Math.cos(out.facing) * CARRY_Z;
+      by = out.carry.lift * (CARRY_Y - R);
+      bvy = 0;
+      vel.set(0, 0, 0);
+      ball.position.y = R + by;
+      lamp.position.set(ball.position.x, 1.8 + by, ball.position.z);
+    }
     if (out.kick) {
       const kx = out.kick.x - ball.position.x;
       const kz = out.kick.z - ball.position.z;
@@ -424,11 +471,16 @@ export function startScene(opts: SceneOptions): FloorScene {
     character.root.position.x = out.x;
     character.root.position.z = out.z;
     character.root.rotation.y = out.facing;
+    /* Say hello once the floor is in view (and his model has had a moment to load). */
+    if (greetPending && clock > GREET_AFTER_MS && (modelIn || clock > GREET_LATEST_MS) && npc.greet(clock)) greetPending = false;
+    const near = Math.hypot(gaze.x - out.x, gaze.z - out.z) < GAZE_RANGE;
+    out.pose.look = clock - gazeAt < GAZE_HOLD_MS && near ? gaze : null;
     character.update(out.pose, clock, dt);
     const bx = ball.position.x - px;
     const bz = ball.position.z - pz;
     const bd = Math.hypot(bx, bz);
-    if (bd < R + 0.5 && by < 0.5 && out.pose.state !== "chase") {
+    const handling = out.pose.state === "chase" || out.pose.state === "pickup" || out.pose.state === "carry" || out.pose.state === "putdown";
+    if (bd < R + 0.5 && by < 0.5 && !handling && !carried) {
       const nx = bd > 0.001 ? bx / bd : 1;
       const nz = bd > 0.001 ? bz / bd : 0;
       ball.position.x = px + nx * (R + 0.5);
@@ -460,6 +512,7 @@ export function startScene(opts: SceneOptions): FloorScene {
     const e = es[es.length - 1]!;
     visible = e.isIntersecting;
     active = e.intersectionRatio > 0.5;
+    if (active && !greeted) { greeted = true; greetPending = true; }
     if (!active) held.clear();
     sync();
   }, { threshold: [0, 0.5, 0.51] });
@@ -488,6 +541,9 @@ export function startScene(opts: SceneOptions): FloorScene {
       window.removeEventListener("blur", onBlur);
       document.removeEventListener("visibilitychange", onVisibility);
       canvas.removeEventListener("click", onClick);
+      canvas.removeEventListener("pointermove", onPointerMove);
+      canvas.removeEventListener("pointerdown", onPointerMove);
+      canvas.removeEventListener("pointerleave", onPointerLeave);
       character.dispose();
       const mats = new Set<Material>();
       const texs = new Set<Texture>();

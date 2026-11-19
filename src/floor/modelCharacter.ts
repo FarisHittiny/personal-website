@@ -36,6 +36,7 @@ import {
 import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader.js";
 import { MeshoptDecoder } from "three/examples/jsm/libs/meshopt_decoder.module.js";
 import { buildPaddle, type Character, type CharacterActivity, type CharacterPose } from "./character";
+import { CARRY_Y, CARRY_Z } from "./npc";
 
 export const MODEL_URL = "/models/faris.glb";
 
@@ -50,6 +51,15 @@ const IDLE_BELOW = 0.25;
 const FADE = 0.18;            // s, cross-fade between locomotion clips
 const STRIKE_FROM = 0.32;     // s into "Strike Forward Jog" where the brain's 0.55 s strike starts
 const PADDLE_SCALE = 1;       // life size; buildPaddle is already at scene scale
+/* Slimmer through the body (Faris: "I look fat"): width and depth only. */
+const SLIM = 0.93;
+const BALL_R = 0.62;          // scene.ts R
+/* Squat for picking the ball up: hips drop this far (world units) at full
+ * crouch, the spine leans forward this much (rad); legs bend to keep the feet put. */
+const SQUAT_DROP = 1.05;
+const SQUAT_LEAN = 0.55;
+/* Glance at the visitor's cursor: neck + head together, at most this far. */
+const LOOK_YAW = 1.0, LOOK_UP = 0.3, LOOK_DOWN = 0.45;
 
 export async function loadModelCharacter(url = MODEL_URL): Promise<Character> {
   const gltf = await new GLTFLoader().setMeshoptDecoder(MeshoptDecoder).loadAsync(url);
@@ -59,8 +69,8 @@ export async function loadModelCharacter(url = MODEL_URL): Promise<Character> {
   const box = new Box3().setFromObject(model);
   const size = box.getSize(new Vector3());
   const s = HEIGHT / size.y;
-  model.scale.setScalar(s);
-  model.position.set(-((box.min.x + box.max.x) / 2) * s, -box.min.y * s, -((box.min.z + box.max.z) / 2) * s);
+  model.scale.set(s * SLIM, s, s * SLIM);
+  model.position.set(-((box.min.x + box.max.x) / 2) * s * SLIM, -box.min.y * s, -((box.min.z + box.max.z) / 2) * s * SLIM);
   model.traverse((o) => {
     const m = o as Mesh;
     if (!m.isMesh) return;
@@ -122,6 +132,10 @@ export async function loadModelCharacter(url = MODEL_URL): Promise<Character> {
   const chest = bone("mixamorigSpine2");
   const lHand = bone("mixamorigLeftHand"), head = bone("mixamorigHead"), rFoot = bone("mixamorigRightFoot");
   const rFinger = bone("mixamorigRightHandMiddle1");
+  const lArm = bone("mixamorigLeftArm"), lFore = bone("mixamorigLeftForeArm");
+  const hips = bone("mixamorigHips"), spine = bone("mixamorigSpine"), neck = bone("mixamorigNeck");
+  const lUp = bone("mixamorigLeftUpLeg"), lLeg = bone("mixamorigLeftLeg"), lFoot = bone("mixamorigLeftFoot");
+  const rUp = bone("mixamorigRightUpLeg"), rLeg = bone("mixamorigRightLeg");
 
   /* Props for two activities: a small ball for juggling, a phone for texting. */
   const jball = new Mesh(geo(new SphereGeometry(0.16, 24, 16)),
@@ -152,16 +166,49 @@ export async function loadModelCharacter(url = MODEL_URL): Promise<Character> {
   const qa = new Quaternion(), qb = new Quaternion();
 
   /** Turn `b` (in world space) so the direction from it to `child` points along `dir` (root space). */
-  function aim(b: Object3D, child: Object3D, dir: Vector3): void {
+  function aim(b: Object3D, child: Object3D, dir: Vector3, weight = 1): void {
+    root.updateMatrixWorld(true);
+    aimWorld(b, child, new Vector3().copy(dir).transformDirection(root.matrixWorld), weight);
+  }
+  /** Same, with the direction already in world space; weight < 1 turns only part of the way. */
+  function aimWorld(b: Object3D, child: Object3D, dirW: Vector3, weight = 1): void {
     root.updateMatrixWorld(true);
     b.getWorldPosition(tmpA);
     child.getWorldPosition(tmpB);
     const cur = tmpB.sub(tmpA).normalize();
-    want.copy(dir).transformDirection(root.matrixWorld);
+    want.copy(dirW).normalize();
+    if (weight < 1) want.lerp(cur, 1 - weight).normalize();
     qa.setFromUnitVectors(cur, want);                       // world delta
     b.getWorldQuaternion(qb);
     const parentQ = b.parent!.getWorldQuaternion(new Quaternion());
     b.quaternion.copy(parentQ.invert().multiply(qa.multiply(qb)));
+  }
+  /** Turn b by a world-space rotation on top of its current pose. */
+  function rotateWorld(b: Object3D, q: Quaternion): void {
+    root.updateMatrixWorld(true);
+    b.getWorldQuaternion(qb);
+    const parentQ = b.parent!.getWorldQuaternion(new Quaternion());
+    b.quaternion.copy(parentQ.invert().multiply(q.clone().multiply(qb)));
+  }
+  /** Two-bone IK: bend a-b-c so c reaches target (world), the middle joint
+   *  bending toward pole (a direction in root space). */
+  const ikA = new Vector3(), ikB = new Vector3(), ikC = new Vector3(), ikN = new Vector3(), ikP = new Vector3(), ikE = new Vector3();
+  function reach(a: Object3D, b: Object3D, c: Object3D, target: Vector3, pole: Vector3): void {
+    root.updateMatrixWorld(true);
+    a.getWorldPosition(ikA); b.getWorldPosition(ikB); c.getWorldPosition(ikC);
+    const la = ikA.distanceTo(ikB), lb = ikB.distanceTo(ikC);
+    ikN.copy(target).sub(ikA);
+    const d = Math.min(Math.max(ikN.length(), Math.abs(la - lb) + 1e-3), (la + lb) * 0.999);
+    ikN.normalize();
+    const cosA = (la * la + d * d - lb * lb) / (2 * la * d);
+    const sinA = Math.sqrt(Math.max(0, 1 - cosA * cosA));
+    ikP.copy(pole).transformDirection(root.matrixWorld);
+    ikP.addScaledVector(ikN, -ikP.dot(ikN)).normalize();
+    ikE.copy(ikA).addScaledVector(ikN, la * cosA).addScaledVector(ikP, la * sinA);
+    aimWorld(a, b, ikE.clone().sub(ikA));
+    root.updateMatrixWorld(true);
+    b.getWorldPosition(ikB);
+    aimWorld(b, c, ikA.clone().addScaledVector(ikN, d).sub(ikB));
   }
 
   function update(pose: CharacterPose, _now: number, dt: number): void {
@@ -198,10 +245,88 @@ export async function loadModelCharacter(url = MODEL_URL): Promise<Character> {
 
     mixer.update(dt);
 
+    squat(pose.crouch);
+    if (pose.hold > 0) holdBall(pose);
+    if (pose.wave > 0) waveHello(pose.wave, _now);
+    lookAt(pose, dt);
+
     paddle.visible = pose.paddling;
     if (pose.paddling) forehand(pose.swing);
     else curlFingers(false);
     props();
+  }
+
+  /* ---- squat: drop the hips, lean in, bend the legs so the feet stay put ---- */
+  const footL = new Vector3(), footR = new Vector3(), fqL = new Quaternion(), fqR = new Quaternion();
+  const KNEE_POLE = new Vector3(0, 0, 1), AXIS_X = new Vector3(1, 0, 0);
+  function squat(c: number): void {
+    if (c <= 0.001) return;
+    root.updateMatrixWorld(true);
+    lFoot.getWorldPosition(footL); rFoot.getWorldPosition(footR);
+    lFoot.getWorldQuaternion(fqL); rFoot.getWorldQuaternion(fqR);
+    hips.getWorldPosition(tmpH);
+    tmpH.y -= c * SQUAT_DROP;
+    hips.parent!.worldToLocal(tmpH);
+    hips.position.copy(tmpH);
+    const lean = new Vector3().copy(AXIS_X).transformDirection(root.matrixWorld);
+    rotateWorld(spine, new Quaternion().setFromAxisAngle(lean, c * SQUAT_LEAN));
+    reach(lUp, lLeg, lFoot, footL, KNEE_POLE);
+    reach(rUp, rLeg, rFoot, footR, KNEE_POLE);
+    for (const [f, q] of [[lFoot, fqL], [rFoot, fqR]] as const) {   // feet stay flat
+      root.updateMatrixWorld(true);
+      f.parent!.getWorldQuaternion(qc);
+      f.quaternion.copy(qc.invert().multiply(q));
+    }
+  }
+
+  /* ---- hands on the ball's sides (picking it up, carrying, setting it down) ---- */
+  const handT = new Vector3(), handNow = new Vector3();
+  const ELBOW_L = new Vector3(1, -0.4, -0.6), ELBOW_R = new Vector3(-1, -0.4, -0.6);
+  function holdBall(pose: CharacterPose): void {
+    const h = pose.hold;
+    for (const [arm, fore, hand, side, pole] of [[lArm, lFore, lHand, 1, ELBOW_L], [rArm, rFore, rHand, -1, ELBOW_R]] as const) {
+      root.updateMatrixWorld(true);
+      handT.set(side * BALL_R * 0.93, BALL_R + pose.lift * (CARRY_Y - BALL_R) + 0.05, CARRY_Z - 0.14)
+        .applyMatrix4(root.matrixWorld);
+      hand.getWorldPosition(handNow);
+      handNow.lerp(handT, h);
+      reach(arm, fore, hand, handNow, pole);
+    }
+  }
+
+  /* ---- hello: right arm up, forearm waving ---- */
+  const WAVE_UPPER = new Vector3(-0.85, 0.5, 0.2), waveFore = new Vector3();
+  function waveHello(u: number, now: number): void {
+    const w = Math.min(1, u / 0.12, (1 - u) / 0.15);
+    if (w <= 0) return;
+    aim(rArm, rFore, WAVE_UPPER, w);
+    waveFore.set(-0.25 + Math.sin(now / 1000 * Math.PI * 2 * 1.6) * 0.45, 1, 0.25).normalize();
+    aim(rFore, rHand, waveFore, w);
+  }
+
+  /* ---- glance at the visitor's cursor ---- */
+  let lookW = 0, lookYaw = 0, lookPitch = 0;
+  const lookT = new Vector3(), headP = new Vector3(), invRoot = new Quaternion(), upW = new Vector3(), rightW = new Vector3();
+  const LOOKING: ReadonlySet<string> = new Set(["idle", "walk", "watch", "carry"]);
+  function lookAt(pose: CharacterPose, dt: number): void {
+    const on = !!pose.look && LOOKING.has(pose.state) && (!pose.activity || pose.activity === "weightshift");
+    lookW += ((on ? 1 : 0) - lookW) * Math.min(1, dt * 4);
+    if (on) lookT.set(pose.look!.x, pose.look!.y, pose.look!.z);
+    if (lookW < 0.01) return;
+    root.updateMatrixWorld(true);
+    head.getWorldPosition(headP);
+    const d = lookT.clone().sub(headP).applyQuaternion(root.getWorldQuaternion(invRoot).invert());
+    const yaw = Math.max(-LOOK_YAW, Math.min(LOOK_YAW, Math.atan2(d.x, d.z)));
+    const pitch = Math.max(-LOOK_DOWN, Math.min(LOOK_UP, Math.atan2(d.y, Math.hypot(d.x, d.z))));
+    const k = Math.min(1, dt * 6);
+    lookYaw += (yaw - lookYaw) * k; lookPitch += (pitch - lookPitch) * k;
+    upW.set(0, 1, 0).transformDirection(root.matrixWorld);
+    rightW.copy(AXIS_X).transformDirection(root.matrixWorld);
+    for (const [b, share] of [[neck, 0.4], [head, 0.6]] as const) {
+      const q = new Quaternion().setFromAxisAngle(upW, lookYaw * lookW * share)
+        .multiply(new Quaternion().setFromAxisAngle(rightW, -lookPitch * lookW * share));
+      rotateWorld(b, q);
+    }
   }
 
   /* Juggling ball and phone follow the body after the clips have posed it. */

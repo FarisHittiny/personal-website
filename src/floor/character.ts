@@ -23,7 +23,8 @@ import {
   type Object3D,
 } from "three";
 
-export type CharacterState = "idle" | "walk" | "chase" | "run" | "kick" | "swing" | "cheer" | "watch";
+export type CharacterState = "idle" | "walk" | "chase" | "run" | "kick" | "swing" | "cheer" | "watch" |
+  "wave" | "pickup" | "carry" | "putdown";
 
 /** Something he does while standing around (clips in faris.glb; npc.ts picks). */
 export type CharacterActivity = "weightshift" | "lookaround" | "stretch" | "texting" | "juggle";
@@ -35,6 +36,12 @@ export interface CharacterPose {
   paddling: boolean;  // paddle in hand (running in to hit, or swinging)
   swing: number;      // 0 = not swinging; otherwise progress 0→1 through the forehand (contact at 0.55)
   activity: CharacterActivity | null;  // idle activity, if any (the stand-in just stands)
+  crouch: number;     // 0 standing .. 1 full squat (picking the ball up / setting it down)
+  hold: number;       // 0..1, how far his hands have gone to the ball's sides
+  lift: number;       // 0 ball on the ground .. 1 at carry height (npc.ts CARRY_Y, CARRY_Z)
+  wave: number;       // 0 = not waving; otherwise progress 0..1 through the hello
+  /** World point he glances at (the visitor's cursor), set by the scene; null = none. */
+  look?: { x: number; y: number; z: number } | null;
 }
 
 export interface Character {
@@ -231,9 +238,20 @@ export function createStandInCharacter(): Character {
       armR.rotation.z = -0.15;
     }
     if (pose.kick > 0) legR.rotation.x = -1.3 * Math.sin(Math.PI * pose.kick);
+    if (pose.hold > 0) {
+      // Both arms forward round the ball (picking it up, carrying it).
+      const h = pose.hold;
+      armL.rotation.x = armL.rotation.x * (1 - h) - 1.25 * h; armR.rotation.x = armR.rotation.x * (1 - h) - 1.25 * h;
+      armL.rotation.z = -0.35 * h; armR.rotation.z = 0.35 * h;
+    }
+    if (pose.wave > 0) {
+      const w = Math.min(1, pose.wave / 0.12, (1 - pose.wave) / 0.15);
+      armR.rotation.x = -0.3 * w;
+      armR.rotation.z = (2.5 + Math.sin(now / 1000 * Math.PI * 2 * 1.6) * 0.35) * w;
+    }
 
-    body.position.y = Math.abs(Math.sin(phase)) * 0.07 * run + (run < 0.05 ? Math.sin(now / 600) * 0.012 : 0);
-    body.rotation.x = 0.16 * run;
+    body.position.y = Math.abs(Math.sin(phase)) * 0.07 * run + (run < 0.05 ? Math.sin(now / 600) * 0.012 : 0) - pose.crouch * 0.45;
+    body.rotation.x = 0.16 * run + pose.crouch * 0.5;
   }
 
   return {

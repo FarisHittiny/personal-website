@@ -26,9 +26,23 @@ export interface NpcOutput {
   x: number; z: number; facing: number;       // root transform
   pose: CharacterPose;
   kick: { x: number; z: number } | null;      // non-null only on the frame he passes
+  /** While he holds the ball: the scene puts it CARRY_Z in front of him
+   *  (along facing), "lift" of the way from the ground up to CARRY_Y. It is
+   *  null on the frame he lets go; the ball then drops from where it was. */
+  carry: { lift: number } | null;
 }
 
-export interface Npc { step(input: NpcInput): NpcOutput; userTookBall(): void }
+export interface Npc {
+  step(input: NpcInput): NpcOutput;
+  userTookBall(): void;
+  /** Wave at the visitor once (the floor just came into view). False if he is
+   *  busy with the ball; call again later. */
+  greet(now: number): boolean;
+}
+
+/* The carried ball's centre, in his root space (world units). */
+export const CARRY_Y = 1.7;          // about his waist: arms round it, chin over it
+export const CARRY_Z = 0.95;         // in front of him
 
 /* Tuning: the prototype's, except where marked (Faris, Nov 2026: kick less,
    fist pump, a kick OR a pickleball forehand, lined up so the ball goes where
@@ -67,6 +81,14 @@ const HIT_CHANCE = 0.5;              // after the first pass: forehand instead o
 const HIT_DIST = 1.7;                // he swings from paddle reach, not kicking range
 const SWING_TIME = 0.55;             // s, the whole forehand
 const SWING_CONTACT = 0.55;          // fraction of the swing at which the paddle meets the ball
+/* Carry (Faris, Nov 2026: "I want me to pick up the ball and carry it"):
+   instead of passing, he sometimes squats, picks the ball up, walks it to a
+   pad and sets it down there. Any key or click makes him drop it. */
+const CARRY_CHANCE = 0.3;            // after the first pass; the rest split kick / forehand
+const PICK_TIME = 1.4;               // s, squat, grab, stand up with it
+const PUT_TIME = 1.2;                // s, squat, set it down, stand up
+const PUT_RELEASE = 0.6;             // fraction of PUT_TIME at which the ball is on the ground and let go
+const WAVE_MS = 2200;                // the hello when the floor comes into view
 /* Idle activities: on arriving somewhere he sometimes does one of these, for
    about the clip's length, facing the camera. */
 const ACTIVITY_CHANCE = 0.55;
@@ -80,11 +102,16 @@ const FACE_CAMERA = 0.35;            // rad, while cheering or watching
 const TURN_RATE = 9;                 // min(1, dt * 9)
 
 const clamp = (v: number, lo: number, hi: number): number => Math.max(lo, Math.min(hi, v));
+const smooth = (a: number, b: number, v: number): number => {
+  const u = clamp((v - a) / (b - a), 0, 1); return u * u * (3 - 2 * u);
+};
 
 export function createNpc(
   pads: readonly { x: number; z: number }[],
   now: number,
   rng: () => number = Math.random,
+  /** Dev only (scene.ts ?first=carry|hit): what the first pass is, for screenshots. */
+  firstMode?: "carry" | "hit",
 ): Npc {
   let state: CharacterState = "idle";
   let until = now + FIRST_IDLE_MS;
@@ -103,6 +130,12 @@ export function createNpc(
   let passDest: { x: number; z: number } | null = null;  // chosen when the chase starts
   let passFace = 0;
   let activity: CharacterActivity | null = "juggle";     // he greets the page juggling
+  let carryMode = false;               // this pass is a carry (chosen with hitMode)
+  let pickT = -1, putT = -1;           // s into the pick-up / set-down, -1 when not
+  let carrying = false;                // the ball is in his hands, walking it to passDest
+  let carryFrom = Infinity;            // scene ms the ball left the ground (input after this drops it)
+  let carryFace = 0;
+  let waveUntil = 0;
 
   function wanderTo(ballX: number, ballZ: number): void {
     tx = clamp(ballX + (rng() * WANDER_SPREAD * 2 - WANDER_SPREAD), -WANDER_X_LIMIT, WANDER_X_LIMIT);
@@ -133,13 +166,56 @@ export function createNpc(
       }
       return dest;
     };
+    const pickPad = (): { x: number; z: number } => {
+      if (pads.length < (onPad >= 0 ? 2 : 1)) return CENTRE;
+      let pick: number;
+      do { pick = Math.floor(rng() * pads.length); } while (pick === onPad);
+      return pads[pick];
+    };
     const passDone = (): void => {
-      firstPass = false; passed = true; hitMode = null; passDest = null;
+      firstPass = false; passed = true; hitMode = null; passDest = null; carryMode = false;
+      pickT = -1; putT = -1; carrying = false; carryFrom = Infinity;
       cool = t + KICK_COOL_MS; state = "idle"; until = t + AFTER_KICK_IDLE_MS; goal = 0;
     };
     if (state !== "idle") activity = null;
-
-    if (swingT >= 0 || strikeT >= 0) {
+    let lift = -1;                       // >= 0 while the ball is in his hands
+    let crouch = 0, hold = 0;
+    const ballInHands = pickT >= 0 || carrying || putT >= 0;
+    if (ballInHands && (input.steering || input.lastInputAt > carryFrom)) {
+      /* The visitor wants it back: let go on the spot (the scene drops it). */
+      passDone(); passed = false; until = t + AFTER_KICK_IDLE_MS;
+    } else if (pickT >= 0) {
+      /* Squat, hands to its sides, stand up with it. */
+      pickT += dt;
+      const u = pickT / PICK_TIME;
+      crouch = smooth(0, 0.42, u) * (1 - smooth(0.55, 1, u));
+      hold = smooth(0.1, 0.45, u);
+      lift = smooth(0.55, 1, u);
+      state = "pickup"; passFace = carryFace;
+      if (u >= 0.55 && carryFrom === Infinity) carryFrom = t;
+      if (pickT >= PICK_TIME) { pickT = -1; carrying = true; }
+    } else if (carrying) {
+      /* Walk it over and stop with the ball above the pad's centre. */
+      const dest = passDest!;
+      let dx = dest.x - x, dz = dest.z - z;
+      const dl = Math.hypot(dx, dz) || 1; dx /= dl; dz /= dl;
+      gx = dest.x - dx * CARRY_Z - x; gz = dest.z - dz * CARRY_Z - z;
+      state = "carry"; goal = WALK_SPEED; lift = 1; hold = 1;
+      if (Math.hypot(gx, gz) < ARRIVE) {
+        goal = 0; vx *= 0.5; vz *= 0.5; carrying = false; putT = 0; passFace = Math.atan2(dx, dz);
+      }
+    } else if (putT >= 0) {
+      /* Squat, set it down on the pad, let go, stand up. */
+      putT += dt;
+      const u = putT / PUT_TIME;
+      crouch = smooth(0, 0.5, u) * (1 - smooth(PUT_RELEASE, 1, u));
+      lift = u >= PUT_RELEASE ? -1 : 1 - smooth(0, 0.5, u);
+      hold = 1 - smooth(PUT_RELEASE, 0.85, u);
+      state = "putdown";
+      if (putT >= PUT_TIME) passDone();
+    } else if (waveUntil > t) {
+      state = "wave";
+    } else if (swingT >= 0 || strikeT >= 0) {
       /* Mid-forehand or mid-kick: planted, facing the target; the ball leaves at contact. */
       const forehand = swingT >= 0;
       const len = forehand ? SWING_TIME : STRIKE_TIME;
@@ -152,8 +228,10 @@ export function createNpc(
       if (after >= len) { swingT = -1; strikeT = -1; passDone(); }
     } else if (mayKick) {
       if (hitMode === null) {
-        hitMode = !firstPass && rng() < HIT_CHANCE;
-        passDest = pickDest();
+        carryMode = firstPass ? firstMode === "carry" : rng() < CARRY_CHANCE;
+        hitMode = firstPass ? firstMode === "hit" : !carryMode && rng() < HIT_CHANCE;
+        passDest = carryMode ? pickPad() : pickDest();
+        if (carryMode) carryFace = Math.atan2(bx, bz);   // walk straight up to it
       }
       const dest = passDest!;
       // Line up so the ball goes the way he faces: behind it for a kick; for a
@@ -162,7 +240,10 @@ export function createNpc(
       const dl = Math.hypot(dx, dz) || 1; dx /= dl; dz /= dl;
       passFace = Math.atan2(dx, dz);
       let sx: number, sz: number;
-      if (hitMode) {
+      if (carryMode) {
+        passFace = carryFace;
+        sx = ballX - Math.sin(carryFace) * CARRY_Z; sz = ballZ - Math.cos(carryFace) * CARRY_Z;
+      } else if (hitMode) {
         const rx = -dz, rz = dx;                   // his right (local -X) when facing (dx, dz)
         sx = ballX - HIT_DIST * (dx + rx) * Math.SQRT1_2;
         sz = ballZ - HIT_DIST * (dz + rz) * Math.SQRT1_2;
@@ -181,7 +262,8 @@ export function createNpc(
       } else { gx = ex; gz = ez; }
       if (el < ARRIVE) {
         goal = 0; vx *= 0.5; vz *= 0.5;
-        if (hitMode) { swingT = 0; state = "swing"; } else { strikeT = 0; state = "kick"; }
+        if (carryMode) { pickT = 0; state = "pickup"; }
+        else if (hitMode) { swingT = 0; state = "swing"; } else { strikeT = 0; state = "kick"; }
       }
     } else if (onPad >= 0) {
       /* Stand beside the lit pad; cheer for a few seconds, then just watch. */
@@ -190,7 +272,8 @@ export function createNpc(
       if (Math.hypot(ox - x, oz - z) > PAD_ARRIVE) {
         state = "run"; gx = ox - x; gz = oz - z; goal = RUN_SPEED; cheerUntil = t + CHEER_MS;
       } else state = t < cheerUntil ? "cheer" : "watch";
-    } else if (state === "cheer" || state === "watch" || state === "chase" || state === "run" || state === "swing" || state === "kick") {
+    } else if (state === "cheer" || state === "watch" || state === "chase" || state === "run" || state === "swing" || state === "kick" ||
+      state === "wave" || state === "pickup" || state === "carry" || state === "putdown") {
       hitMode = null; passDest = null;
       state = "idle"; until = t + LEAVE_PAD_IDLE_MS;
     } else if (state === "walk") {
@@ -216,17 +299,21 @@ export function createNpc(
        will go; when standing, watch the ball; when cheering, watching a pad or
        busy with an activity, face the camera. */
     const paddling = swingT >= 0 || (state === "chase" && hitMode === true);
-    const want = swingT >= 0 || strikeT >= 0 ? passFace
+    const want = swingT >= 0 || strikeT >= 0 || pickT >= 0 || putT >= 0 ? passFace
       : speed > FACE_MOVING ? Math.atan2(vx, vz)
-      : (state === "cheer" || state === "watch" || activity ? FACE_CAMERA : Math.atan2(bx, bz));
+      : carrying ? face
+      : (state === "cheer" || state === "watch" || state === "wave" || activity ? FACE_CAMERA : Math.atan2(bx, bz));
     face += Math.atan2(Math.sin(want - face), Math.cos(want - face)) * Math.min(1, dt * TURN_RATE);
 
 
     return {
       x, z, facing: face,
       pose: { state, speed, kick: strikeT >= 0 ? strikeT / STRIKE_TIME : 0, paddling,
-        swing: swingT >= 0 ? swingT / SWING_TIME : 0, activity },
+        swing: swingT >= 0 ? swingT / SWING_TIME : 0, activity,
+        crouch, hold, lift: Math.max(0, lift),
+        wave: waveUntil > t ? 1 - (waveUntil - t) / WAVE_MS : 0 },
       kick,
+      carry: lift >= 0 ? { lift } : null,
     };
   }
 
@@ -234,5 +321,12 @@ export function createNpc(
     step,
     /** A key or click steer: he no longer owns the pass that put the ball on a pad. */
     userTookBall(): void { passed = false; },
+    greet(t: number): boolean {
+      const busy = hitMode !== null || swingT >= 0 || strikeT >= 0 || pickT >= 0 || carrying || putT >= 0 ||
+        state === "cheer" || state === "run" || state === "chase";
+      if (busy) return false;
+      waveUntil = t + WAVE_MS; state = "wave"; activity = null;
+      return true;
+    },
   };
 }

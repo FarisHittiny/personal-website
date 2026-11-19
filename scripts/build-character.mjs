@@ -31,6 +31,7 @@ const sharp = createRequire(createRequire(import.meta.url).resolve("ndarray-pixe
 const SRC = "assets-src/character";
 const OUT = "public/models/faris.glb";
 const FPS = 30;
+const TEX = Number(process.env.CHAR_TEX ?? 1024);   // base colour texture size
 const CLIPS = [
   // name, file, seconds to keep (null = whole clip). All Mixamo, "without skin".
   ["idle", "idle-breathing.fbx", null],        // "Breathing Idle": calm standing loop
@@ -82,7 +83,7 @@ for (const t of root.listTextures()) {
   console.log("texture", t.getName(), t.getMimeType());
   // Decode to raw RGB first: the export's JPEG trips libvips' colourspace step on resize.
   const { data, info } = await sharp(Buffer.from(t.getImage())).removeAlpha().raw().toBuffer({ resolveWithObject: true });
-  const img = await sharp(data, { raw: info }).resize(1024, 1024).webp({ quality: 82 }).toBuffer();
+  const img = await sharp(data, { raw: info }).resize(TEX, TEX).webp({ quality: TEX > 1024 ? 70 : 82 }).toBuffer();
   t.setImage(new Uint8Array(img)).setMimeType("image/webp").setURI("");
 }
 

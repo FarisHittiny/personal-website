@@ -6,7 +6,7 @@
 //
 // Exits 1 if any check fails.
 
-import { createNpc } from "../src/floor/npc.ts";
+import { CARRY_Y, CARRY_Z, createNpc } from "../src/floor/npc.ts";
 import { BALL_START, HEADLINES } from "../src/content.ts";
 
 const PADS = HEADLINES.map((h) => h.pad);
@@ -36,6 +36,8 @@ function makeWorld(seed = 1) {
     onPad: -1,
     out: null,
     kicks: [],
+    carries: [],          // { from, at, dropAt, x, z, by, onPad, maxSpeed, dropped }
+    carried: false,
     npc: null,
   };
   w.npc = createNpc(PADS, w.now, mulberry32(seed));
@@ -62,7 +64,7 @@ function makeWorld(seed = 1) {
     const rr = Math.hypot(b.x, b.z); if (rr > 17) { b.x *= 17 / rr; b.z *= 17 / rr; }
     b.bvy -= 18 * DT; b.by += b.bvy * DT; if (b.by < 0) { b.by = 0; b.bvy = b.bvy < -2 ? -b.bvy * 0.42 : 0; }
     let on = -1;
-    PADS.forEach((p, i) => { if (Math.hypot(p.x - b.x, p.z - b.z) < 2.2) on = i; });
+    if (!w.carried) PADS.forEach((p, i) => { if (Math.hypot(p.x - b.x, p.z - b.z) < 2.2) on = i; });
     w.onPad = on;
 
     const px = w.out.x, pz = w.out.z;
@@ -73,6 +75,18 @@ function makeWorld(seed = 1) {
       lastInputAt: w.lastInputAt, onPad: on,
     });
     w.out = out;
+    if (out.carry) {
+      // scene.ts: the ball sits CARRY_Z in front of him, lifted toward CARRY_Y
+      if (!w.carried) w.carries.push({ from: on, at: w.now, maxSpeed: 0, minLift: 1 });
+      const c = w.carries.at(-1);
+      b.x = out.x + Math.sin(out.facing) * CARRY_Z; b.z = out.z + Math.cos(out.facing) * CARRY_Z;
+      b.by = out.carry.lift * (CARRY_Y - R); b.bvy = 0; b.vx = 0; b.vz = 0;
+      if (out.pose.state === "carry") c.maxSpeed = Math.max(c.maxSpeed, out.pose.speed);
+      c.lastLift = out.carry.lift;
+    } else if (w.carried) {
+      Object.assign(w.carries.at(-1), { dropAt: w.now, x: b.x, z: b.z, by: b.by, dropLift: w.carries.at(-1).lastLift });
+    }
+    w.carried = !!out.carry;
     if (out.kick) {
       const kx = out.kick.x - b.x, kz = out.kick.z - b.z, kl = Math.hypot(kx, kz) || 1;
       w.kicks.push({ at: w.now, from: on, dest: out.kick, dist: Math.hypot(px - b.x, pz - b.z), swing: out.pose.swing, paddling: out.pose.paddling,
@@ -82,7 +96,8 @@ function makeWorld(seed = 1) {
     }
     // ball-versus-body collision (lives in scene.ts; prototype offset 42310)
     const bx = b.x - px, bz = b.z - pz, bd = Math.hypot(bx, bz);
-    if (bd < R + 0.5 && b.by < 0.5 && out.pose.state !== "chase") {
+    const handling = ["chase", "pickup", "carry", "putdown"].includes(out.pose.state);
+    if (bd < R + 0.5 && b.by < 0.5 && !handling && !w.carried) {
       const nx = bd > 0.001 ? bx / bd : 1, nz = bd > 0.001 ? bz / bd : 0;
       b.x = px + nx * (R + 0.5); b.z = pz + nz * (R + 0.5);
       const vn = b.vx * nx + b.vz * nz; if (vn < 0) { b.vx -= 1.5 * vn * nx; b.vz -= 1.5 * vn * nz; }
@@ -316,6 +331,72 @@ const f2 = (n) => n.toFixed(2);
     if (hit) lit++;
   }
   check("left idle for 30 s, he passes the ball onto a pad (page demos itself)", lit >= 90, `${lit}/100 seeds lit a pad within 30 s`);
+}
+
+/* 10. Carry: ~30% of passes after the first; he sets the ball down on a pad
+       (never the one it came from), walking at 2.3; a click makes him drop it. */
+{
+  let passes = 0, carries = 0, done = 0, worstOff = 0, onAPad = 0, samePad = 0, fast = 0, firstCarry = 0, notDown = 0;
+  for (let seed = 1; seed <= 200; seed++) {
+    const w = makeWorld(seed);
+    w.runUntil(400000);
+    const events = [...w.kicks.map((k) => ({ at: k.at, carry: false })), ...w.carries.map((c) => ({ at: c.at, carry: true, c }))]
+      .sort((a, b) => a.at - b.at);
+    events.forEach((e, i) => {
+      if (i === 0) { if (e.carry) firstCarry++; return; }
+      passes++;
+      if (!e.carry) return;
+      carries++;
+      const c = e.c;
+      if (c.dropAt === undefined) return;
+      done++;
+      worstOff = Math.max(worstOff, Math.min(...PADS.map((pp) => Math.hypot(pp.x - c.x, pp.z - c.z))));
+      const pad = PADS.findIndex((pp) => Math.hypot(pp.x - c.x, pp.z - c.z) < 0.5);
+      if (pad >= 0) onAPad++;
+      if (pad >= 0 && pad === c.from) samePad++;
+      if (c.maxSpeed > 2.3 + 1e-9) fast++;
+      if (c.dropLift > 0.05) notDown++;
+    });
+  }
+  check("after the first pass, ~30% of passes are carries (the first never is)",
+    firstCarry === 0 && Math.abs(carries / passes - 0.3) < 0.04, `${carries}/${passes} = ${f2(carries / passes)}; first-pass carries ${firstCarry}`);
+  check("he sets a carried ball down at a pad's centre (a different pad), walking at most 2.3",
+    done > 0 && onAPad === done && samePad === 0 && fast === 0 && notDown === 0,
+    `${done} set down; on a pad centre ${onAPad} (worst ${f2(worstOff)} off); same pad ${samePad}; too fast ${fast}; let go above the ground ${notDown}`);
+
+  // a click while he carries it: he lets go on the spot, it falls, the visitor has it
+  let tried = 0, dropped = 0, regrabbed = 0;
+  for (let seed = 1; seed <= 200 && tried < 20; seed++) {
+    const w = makeWorld(seed);
+    let caught = false;
+    w.runUntil(400000, (o) => { if (o.pose.state === "carry") { caught = true; return false; } });
+    if (!caught) continue;
+    tried++;
+    w.click(w.ball.x + 3, w.ball.z);
+    const t0 = w.now;
+    w.runUntil(t0 + 100);
+    if (!w.carried && w.carries.at(-1).dropAt <= t0 + 20) dropped++;
+    const n = w.carries.length;
+    w.runUntil(t0 + 3000);
+    if (w.carries.length > n) regrabbed++;
+  }
+  check("a click while he carries it makes him drop it at once (and not take it back)",
+    tried > 0 && dropped === tried && regrabbed === 0, `${tried} runs; dropped at once ${dropped}; picked up again within 3 s ${regrabbed}`);
+}
+
+/* 11. Hello: greet() makes him wave ~2.2 s, facing the camera; never mid-pass. */
+{
+  const w = makeWorld(8);
+  w.runUntil(2000);
+  const ok = w.npc.greet(w.now);
+  let waveMs = 0, lastFace = 0;
+  w.runUntil(w.now + 4000, (o) => { if (o.pose.state === "wave") { waveMs += DT * 1000; lastFace = o.facing; } });
+  const w2 = makeWorld(8);
+  let refused = null;
+  w2.runUntil(20000, (o, ww) => { if (o.pose.state === "chase" && refused === null) refused = !ww.npc.greet(ww.now); });
+  check("greet() waves ~2.2 s facing the camera, and is refused mid-pass",
+    ok && Math.abs(waveMs - 2200) < 40 && angDiff(lastFace, 0.35) < 0.05 && refused === true,
+    `accepted ${ok}; waved ${Math.round(waveMs)} ms; facing ${f2(lastFace)}; refused while chasing ${refused}`);
 }
 
 const failed = results.filter((r) => !r.ok);
