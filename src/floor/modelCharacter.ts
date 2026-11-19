@@ -38,7 +38,7 @@ import { buildPaddle, type Character, type CharacterActivity, type CharacterPose
 
 export const MODEL_URL = "/models/faris.glb";
 
-const HEIGHT = 2.75;          // world units, about the stand-in's height at its 1.2 scale
+const HEIGHT = 3.3;           // world units (Faris, Nov 2026: 2.75 read "a little small")
 const WALK_SPEED = 1.6;       // ground speed (units/s) at which the walk clip plays at 1x
 const RUN_SPEED = 4.6;        // same for the run clip
 const RUN_FROM = 2.8;         // above this speed he runs instead of walks
