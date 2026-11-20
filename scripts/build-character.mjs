@@ -31,6 +31,7 @@ const sharp = createRequire(createRequire(import.meta.url).resolve("ndarray-pixe
 const SRC = "assets-src/character";
 const OUT = "public/models/faris.glb";
 const FPS = 30;
+const TEX = Number(process.env.CHAR_TEX ?? 1024);   // base colour texture size
 const CLIPS = [
   // name, file, seconds to keep (null = whole clip). All Mixamo, "without skin".
   ["idle", "idle-breathing.fbx", null],        // "Breathing Idle": calm standing loop
@@ -44,8 +45,13 @@ const CLIPS = [
   ["stretch", "idle-stretch.fbx", null],       // "Arm Stretching"
   ["texting", "idle-texting.fbx", 8],          // "Texting While Standing"
   ["juggle", "pack-kick-soccerball-_2_.fbx", null], // "Juggling Right Kick": touch at 0.27 s, loops
+  // hello (npc.ts greet). Mixamo "Picking Up" was tried for the carry: a deep
+  // one-handed stoop that retargets hunched, so the squat stays procedural.
+  ["wave", "wave.fbx", null],                  // "Waving": 0.53 s right-hand loop
 ];
 const SKIP = /Hand(Thumb|Index|Middle|Ring|Pinky)|Toe_End|HeadTop_End/;
+/* The fist pump keeps its fingers, or the raised hand reads as a limp wave. */
+const SKIP_WITH_FINGERS = /Toe_End|HeadTop_End/;
 
 const key = (name) => name.replace(/[:\s]/g, "");
 /* A bone's direction is measured toward one specific child, the same in both
@@ -80,7 +86,7 @@ for (const t of root.listTextures()) {
   console.log("texture", t.getName(), t.getMimeType());
   // Decode to raw RGB first: the export's JPEG trips libvips' colourspace step on resize.
   const { data, info } = await sharp(Buffer.from(t.getImage())).removeAlpha().raw().toBuffer({ resolveWithObject: true });
-  const img = await sharp(data, { raw: info }).resize(1024, 1024).webp({ quality: 82 }).toBuffer();
+  const img = await sharp(data, { raw: info }).resize(TEX, TEX).webp({ quality: TEX > 1024 ? 70 : 82 }).toBuffer();
   t.setImage(new Uint8Array(img)).setMimeType("image/webp").setURI("");
 }
 
@@ -165,6 +171,7 @@ for (const j of order) {
 /* ---------- per clip ---------- */
 const anims = [];
 for (const [name, file, keep] of CLIPS) {
+  const skip = name === "cheer" ? SKIP_WITH_FINGERS : SKIP;
   const clip = loadFbx(file).animations[0];
   for (const [k, [pos, quat]] of sRestLocal) { const o = sBones.get(k); o.position.copy(pos); o.quaternion.copy(quat); }
   const mixer = new AnimationMixer(src);
@@ -190,7 +197,7 @@ for (const [name, file, keep] of CLIPS) {
       const parentNode = j.getParentNode();
       const parentWQ = newWQ.get(parentNode) ?? wq(tObj.get(parentNode));
       let world;
-      if (!s || SKIP.test(k)) {
+      if (!s || skip.test(k)) {
         // keep rest local rotation: world follows parent
         world = parentWQ.clone().multiply(new Quaternion().fromArray(j.getRotation()));
       } else {
@@ -221,7 +228,7 @@ for (const [name, file, keep] of CLIPS) {
   const anim = doc.createAnimation(name);
   const input = doc.createAccessor().setType("SCALAR").setArray(times);
   for (const j of order) {
-    if (SKIP.test(key(j.getName()))) continue;
+    if (skip.test(key(j.getName()))) continue;
     const out = doc.createAccessor().setType("VEC4").setArray(rot.get(j));
     const sampler = doc.createAnimationSampler().setInput(input).setOutput(out).setInterpolation("LINEAR");
     anim.addSampler(sampler).addChannel(doc.createAnimationChannel().setTargetNode(j).setTargetPath("rotation").setSampler(sampler));
