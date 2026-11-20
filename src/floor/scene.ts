@@ -240,9 +240,12 @@ export function startScene(opts: SceneOptions): FloorScene {
 
   /* ---- NPC ---- */
   let clock = 0; // scene clock, ms; advances only while rendering
-  // The stand-in draws at once; the rigged GLB (Phase 2) replaces it when it
-  // has loaded. If it fails, or with ?stand-in, the stand-in stays.
+  // The rigged GLB (Phase 2) is the character. The stand-in only shows if the
+  // GLB fails to load (or with ?stand-in); until then it runs hidden, so the
+  // visitor never sees it flash before the model (Faris, Nov 2026).
   let character: Character = createStandInCharacter();
+  const wantModel = !new URLSearchParams(location.search).has("stand-in");
+  character.root.visible = !wantModel;
   let modelIn = false;   // the GLB has replaced the stand-in (he waits for it before waving)
   scene.add(character.root);
   const swapIn = (next: Character): void => {
@@ -254,15 +257,14 @@ export function startScene(opts: SceneOptions): FloorScene {
     scene.add(next.root);
     modelIn = true;
   };
-  if (!new URLSearchParams(location.search).has("stand-in")) {
-    const loadModel = (): void => {
-      import("./modelCharacter")
-        .then((m) => m.loadModelCharacter())
-        .then(swapIn)
-        .catch((err: unknown) => console.warn("Character model unavailable, keeping the stand-in:", err));
-    };
-    if ("requestIdleCallback" in window) window.requestIdleCallback(loadModel, { timeout: 2500 });
-    else setTimeout(loadModel, 800);
+  if (wantModel) {
+    import("./modelCharacter")
+      .then((m) => m.loadModelCharacter())
+      .then(swapIn)
+      .catch((err: unknown) => {
+        console.warn("Character model unavailable, showing the stand-in:", err);
+        if (!modelIn) character.root.visible = true;
+      });
   }
   const firstMode = import.meta.env.DEV ? new URLSearchParams(location.search).get("first") : null;
   const npc = createNpc(pads, clock, Math.random,
