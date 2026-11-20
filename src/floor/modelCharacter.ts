@@ -105,6 +105,9 @@ export async function loadModelCharacter(url = MODEL_URL): Promise<Character> {
     return mixer.clipAction(clip);
   };
   const idle = action("idle"), walk = action("walk"), run = action("run");
+  /* Mixamo "Waving", looped while the hello lasts. */
+  const waveA = action("wave");
+  waveA.play(); waveA.setEffectiveWeight(0);
   const kick = action("kick"), cheer = action("cheer");
   // The kick is Mixamo's "Strike Forward Jog": the brain's strike covers the
   // clip's last stride and the strike (STRIKE_FROM..+STRIKE_TIME, contact at
@@ -240,14 +243,16 @@ export async function loadModelCharacter(url = MODEL_URL): Promise<Character> {
       kicking = false;
       kick.fadeOut(0.15);
     }
-    const free = kicking ? 0.1 : 1;
+    /* The wave takes over from the clips above (weights add to 1). */
+    const hello = pose.wave > 0 ? Math.max(0, Math.min(1, pose.wave / 0.12, (1 - pose.wave) / 0.15)) : 0;
+    waveA.setEffectiveWeight(hello);
+    const free = (kicking ? 0.1 : 1) * (1 - hello);
     for (const n of SLOTS) slotAction[n].setEffectiveWeight(loco[n] * free);
 
     mixer.update(dt);
 
     squat(pose.crouch);
     if (pose.hold > 0) holdBall(pose);
-    if (pose.wave > 0) waveHello(pose.wave, _now);
     lookAt(pose, dt);
 
     paddle.visible = pose.paddling;
@@ -292,16 +297,6 @@ export async function loadModelCharacter(url = MODEL_URL): Promise<Character> {
       handNow.lerp(handT, h);
       reach(arm, fore, hand, handNow, pole);
     }
-  }
-
-  /* ---- hello: right arm up, forearm waving ---- */
-  const WAVE_UPPER = new Vector3(-0.85, 0.5, 0.2), waveFore = new Vector3();
-  function waveHello(u: number, now: number): void {
-    const w = Math.min(1, u / 0.12, (1 - u) / 0.15);
-    if (w <= 0) return;
-    aim(rArm, rFore, WAVE_UPPER, w);
-    waveFore.set(-0.25 + Math.sin(now / 1000 * Math.PI * 2 * 1.6) * 0.45, 1, 0.25).normalize();
-    aim(rFore, rHand, waveFore, w);
   }
 
   /* ---- glance at the visitor's cursor ---- */

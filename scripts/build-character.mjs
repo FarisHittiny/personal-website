@@ -45,6 +45,9 @@ const CLIPS = [
   ["stretch", "idle-stretch.fbx", null],       // "Arm Stretching"
   ["texting", "idle-texting.fbx", 8],          // "Texting While Standing"
   ["juggle", "pack-kick-soccerball-_2_.fbx", null], // "Juggling Right Kick": touch at 0.27 s, loops
+  // hello (npc.ts greet). Mixamo "Picking Up" was tried for the carry: a deep
+  // one-handed stoop that retargets hunched, so the squat stays procedural.
+  ["wave", "wave.fbx", null],                  // "Waving": 0.53 s right-hand loop
 ];
 const SKIP = /Hand(Thumb|Index|Middle|Ring|Pinky)|Toe_End|HeadTop_End/;
 /* The fist pump keeps its fingers, or the raised hand reads as a limp wave. */
